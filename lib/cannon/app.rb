@@ -1,10 +1,10 @@
 module Cannon
   class App
-    attr_reader :routes, :handlers_binding
+    attr_reader :routes, :functions_binding
 
-    def initialize(handlers_binding)
+    def initialize(functions_binding)
       @routes = []
-      @handlers_binding = handlers_binding
+      @functions_binding = functions_binding
     end
 
     def get(path, *functions)
@@ -35,8 +35,33 @@ module Cannon
       self.path == path
     end
 
+    def function_block(app, request, response)
+      remaining_functions = functions.dup
+      -> { RouteFunction.new(app, remaining_functions.shift, request, response, remaining_functions).run }
+    end
+
     def to_s
-      path
+      "Route: '#{path}'"
+    end
+  end
+
+  class RouteFunction
+    include EventMachine::Deferrable
+
+    def initialize(app, function, request, response, remaining_functions)
+      @app, @function, @request, @response, @remaining_functions = app, function, request, response, remaining_functions
+
+      callback do
+        if @remaining_functions.size > 0
+          function = RouteFunction.new(@app, @remaining_functions.shift, @request, @response, @remaining_functions)
+          function.run
+        end
+      end
+    end
+
+    def run
+      @app.functions_binding.send(@function, @request, @response)
+      @response.sent? ? self.fail : self.succeed
     end
   end
 end
