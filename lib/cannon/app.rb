@@ -7,8 +7,8 @@ module Cannon
       @actions_binding = actions_binding
     end
 
-    def get(path, action: nil, actions: nil)
-      routes << Route.new(path, actions: [action, actions].flatten.compact)
+    def get(path, action: nil, actions: nil, redirect: nil)
+      routes << Route.new(path, actions: [action, actions].flatten.compact, redirect: redirect)
     end
 
     def listen(port = 8080)
@@ -23,31 +23,40 @@ module Cannon
   end
 
   class Route
-    attr_reader :path, :actions
+    attr_reader :path, :actions, :redirect
 
-    def initialize(path, actions:)
-      raise "Must have at least one action for path #{path}" unless actions.size > 0
-
+    def initialize(path, actions: nil, redirect: nil)
       path = '/' + path unless path =~ /^\// # ensure path begins with '/'
       @path = path
       @actions = actions
+      @redirect = redirect
     end
 
     def matches?(path)
       self.path == path
     end
 
-    def function_block(app, request, response)
-      remaining_actions = actions.dup
-      -> { RouteFunction.new(app, remaining_actions.shift, request, response, remaining_actions).run }
+    def handle(app, request, response)
+      if redirect
+        response.permanent_redirect(redirect)
+      elsif actions and actions.size > 0
+        EM.defer(action_block(app, request, response), ->(result) { response.send })
+      end
     end
 
     def to_s
       "Route: '#{path}'"
     end
+
+  private
+
+    def action_block(app, request, response)
+      remaining_actions = actions.dup
+      -> { RouteAction.new(app, remaining_actions.shift, request, response, remaining_actions).run }
+    end
   end
 
-  class RouteFunction
+  class RouteAction
     include EventMachine::Deferrable
 
     def initialize(app, function, request, response, remaining_actions)
@@ -55,13 +64,14 @@ module Cannon
 
       callback do
         if @remaining_actions.size > 0
-          function = RouteFunction.new(@app, @remaining_actions.shift, @request, @response, @remaining_actions)
+          function = RouteAction.new(@app, @remaining_actions.shift, @request, @response, @remaining_actions)
           function.run
         end
       end
     end
 
     def run
+      puts "Running action #{@function}"
       @app.actions_binding.send(@function, @request, @response)
       @response.sent? ? self.fail : self.succeed
     end

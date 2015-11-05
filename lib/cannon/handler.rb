@@ -11,13 +11,14 @@ module Cannon
       request = HttpRequest.new(self)
       response = HttpResponse.new(self)
 
+      puts "GET #{request.path}"
+
       matched_route = app.routes.find { |route| route.matches? request.path }
 
       if matched_route.nil?
         response.not_found
       else
-        puts "GET #{matched_route.path}"
-        EM.defer(matched_route.function_block(app, request, response), ->(result) { response.send })
+        matched_route.handle(app, request, response)
       end
     end
   end
