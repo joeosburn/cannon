@@ -1,14 +1,14 @@
 module Cannon
   class App
-    attr_reader :routes, :functions_binding
+    attr_reader :routes, :actions_binding
 
-    def initialize(functions_binding)
+    def initialize(actions_binding)
       @routes = []
-      @functions_binding = functions_binding
+      @actions_binding = actions_binding
     end
 
-    def get(path, *functions)
-      routes << Route.new(path, functions: functions)
+    def get(path, action: nil, actions: nil)
+      routes << Route.new(path, actions: [action, actions].flatten.compact)
     end
 
     def listen(port = 8080)
@@ -23,12 +23,14 @@ module Cannon
   end
 
   class Route
-    attr_reader :path, :functions
+    attr_reader :path, :actions
 
-    def initialize(path, functions:)
+    def initialize(path, actions:)
+      raise "Must have at least one action for path #{path}" unless actions.size > 0
+
       path = '/' + path unless path =~ /^\// # ensure path begins with '/'
       @path = path
-      @functions = functions
+      @actions = actions
     end
 
     def matches?(path)
@@ -36,8 +38,8 @@ module Cannon
     end
 
     def function_block(app, request, response)
-      remaining_functions = functions.dup
-      -> { RouteFunction.new(app, remaining_functions.shift, request, response, remaining_functions).run }
+      remaining_actions = actions.dup
+      -> { RouteFunction.new(app, remaining_actions.shift, request, response, remaining_actions).run }
     end
 
     def to_s
@@ -48,19 +50,19 @@ module Cannon
   class RouteFunction
     include EventMachine::Deferrable
 
-    def initialize(app, function, request, response, remaining_functions)
-      @app, @function, @request, @response, @remaining_functions = app, function, request, response, remaining_functions
+    def initialize(app, function, request, response, remaining_actions)
+      @app, @function, @request, @response, @remaining_actions = app, function, request, response, remaining_actions
 
       callback do
-        if @remaining_functions.size > 0
-          function = RouteFunction.new(@app, @remaining_functions.shift, @request, @response, @remaining_functions)
+        if @remaining_actions.size > 0
+          function = RouteFunction.new(@app, @remaining_actions.shift, @request, @response, @remaining_actions)
           function.run
         end
       end
     end
 
     def run
-      @app.functions_binding.send(@function, @request, @response)
+      @app.actions_binding.send(@function, @request, @response)
       @response.sent? ? self.fail : self.succeed
     end
   end

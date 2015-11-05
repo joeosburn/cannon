@@ -3,6 +3,7 @@ module Cannon
     include EventMachine::HttpServer
 
     def app
+      # magically defined by Cannon::App
       self.class.app
     end
 
