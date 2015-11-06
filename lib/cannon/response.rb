@@ -136,6 +136,11 @@ module Cannon
       send('Not Found', status: 404)
     end
 
+    def internal_server_error(title:, content:)
+      html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
+      send(html, status: :internal_server_error)
+    end
+
   private
 
     def converted_status(status)

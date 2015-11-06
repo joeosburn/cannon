@@ -19,7 +19,15 @@ module Cannon
         response.permanent_redirect(redirect)
       elsif @route_action
         EM.defer(
-          -> { @route_action.run(request, response) },
+          -> do
+            begin
+              @route_action.run(request, response)
+            rescue => error
+              puts error.message
+              puts error.backtrace
+              response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+            end
+          end,
           ->(result) { response.send }
         )
       end
