@@ -1,5 +1,5 @@
 module Cannon
-    class HttpRequest
+    class Request
     attr_accessor :protocol, :method, :cookie, :content_type, :path, :uri, :query_string, :post_content, :headers
 
     def initialize(http_server)

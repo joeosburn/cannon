@@ -8,8 +8,8 @@ module Cannon
     end
 
     def process_http_request
-      request = HttpRequest.new(self)
-      response = HttpResponse.new(self)
+      request = Request.new(self)
+      response = Response.new(self)
 
       puts "GET #{request.path}"
 
