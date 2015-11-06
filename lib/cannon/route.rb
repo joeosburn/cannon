@@ -44,17 +44,26 @@ module Cannon
 
     def initialize(app, action:, callback:)
       @app, @action, @callback = app, action, callback
-
-      callback do
-        @callback.run(@request, @response) unless @callback.nil?
-      end
     end
 
     def run(request, response)
-      @request, @response = request, response
       puts "Running action #{@action}"
       @app.actions_binding.send(@action, request, response)
-      @response.sent? ? self.fail : self.succeed
+      if response.sent?
+        fail
+      else
+        setup_callback
+        succeed(request, response)
+      end
+    end
+
+  private
+
+    def setup_callback
+      set_deferred_status nil
+      callback do |request, response|
+        @callback.run(request, response) unless @callback.nil?
+      end
     end
   end
 end
