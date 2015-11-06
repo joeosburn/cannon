@@ -18,7 +18,7 @@ module Cannon
       if matched_route.nil?
         response.not_found
       else
-        matched_route.handle(app, request, response)
+        matched_route.handle(request, response)
       end
     end
   end
