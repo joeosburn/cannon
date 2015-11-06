@@ -1,10 +1,10 @@
 module Cannon
     class Request
-    attr_accessor :protocol, :method, :cookie, :content_type, :path, :uri, :query_string, :post_content, :headers
+    attr_accessor :protocol, :http_method, :cookie, :content_type, :path, :uri, :query_string, :post_content, :headers
 
     def initialize(http_server)
       self.protocol = http_server.instance_variable_get('@http_protocol')
-      self.method = http_server.instance_variable_get('@http_request_method')
+      self.http_method = http_server.instance_variable_get('@http_request_method')
       self.cookie = http_server.instance_variable_get('@http_cookie')
       self.content_type = http_server.instance_variable_get('@http_content_type')
       self.path= http_server.instance_variable_get('@http_path_info')

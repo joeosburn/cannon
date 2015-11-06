@@ -1,10 +1,13 @@
 module Cannon
   class App
     attr_reader :routes, :actions_binding
+    attr_accessor :middleware
 
-    def initialize(actions_binding)
+    def initialize(actions_binding, middleware: [])
       @routes = []
       @actions_binding = actions_binding
+
+      self.middleware = [middleware].flatten
     end
 
     def get(path, action: nil, actions: nil, redirect: nil)
