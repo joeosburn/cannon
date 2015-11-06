@@ -26,7 +26,7 @@ module Cannon
     end
 
     def to_s
-      "Route: '#{path}'"
+      "Route: #{path}"
     end
 
   private

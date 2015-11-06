@@ -11,13 +11,13 @@ module Cannon
       routes << Route.new(self, path: path, actions: [action, actions].flatten.compact, redirect: redirect)
     end
 
-    def listen(port = 8080)
+    def listen(port: 8080)
       cannon_app = self
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       EventMachine::run {
         EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
-        puts "Listening on port #{port}..."
+        puts "Cannon listening on port #{port}..."
       }
     end
   end
