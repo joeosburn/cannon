@@ -5,8 +5,8 @@ module Cannon
     class Files
       def initialize(app)
         @app = app
-        @base_path = "#{Dir.getwd}/#{@app.public_path}"
-        @signature = ''
+        @base_path = "#{Cannon.root}/#{@app.public_path}"
+        @signature = nil
       end
 
       def run(request, response)
@@ -16,14 +16,18 @@ module Cannon
           file_path = "#{@base_path}#{request.path}"
           content_type = FileMagic.new(FileMagic::MAGIC_MIME).file(file_path)
           response.header('Content-Type', content_type)
-          response.send(IO.binread(file_path), status: :ok)
+          response.send(IO.binread(file_path))
         end
       end
 
     private
 
       def outdated_cache?
-        @signature != public_path_signature
+        if Cannon.env == 'production'
+          @signature.nil?
+        else
+          @signature != public_path_signature
+        end
       end
 
       def reload_cache
