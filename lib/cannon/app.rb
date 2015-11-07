@@ -31,15 +31,16 @@ module Cannon
   private
 
     def define_environment
-      cannon_env = ENV['CANNON_ENV'] || 'development'
-      Cannon.send(:define_method, :env, -> { cannon_env })
-      Cannon.send(:module_function, :env)
+      cannon_method(:env, ENV['CANNON_ENV'] || 'development')
     end
 
     def define_root
-      root_dir = @app_binding.eval('File.expand_path(File.dirname(__FILE__))')
-      Cannon.send(:define_method, :root, -> { root_dir })
-      Cannon.send(:module_function, :root)
+      cannon_method(:root, @app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
+    end
+
+    def cannon_method(name, value)
+      Cannon.send(:define_method, name.to_sym, -> { value })
+      Cannon.send(:module_function, name.to_sym)
     end
   end
 end
