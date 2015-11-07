@@ -4,6 +4,8 @@ module Cannon
     attr_accessor :middleware, :public_path
 
     def initialize(app_binding, middleware: [], public_path: 'public')
+      define_environment
+
       @routes = []
       @app_binding = app_binding
 
@@ -23,6 +25,14 @@ module Cannon
         EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
         puts "Cannon listening on port #{port}..."
       }
+    end
+
+  private
+
+    def define_environment
+      cannon_env = ENV['CANNON_ENV'] || 'development'
+      Cannon.send(:define_method, :env, -> { cannon_env })
+      Cannon.send(:module_function, :env)
     end
   end
 end
