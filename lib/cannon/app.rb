@@ -1,13 +1,14 @@
 module Cannon
   class App
-    attr_reader :routes, :actions_binding
-    attr_accessor :middleware
+    attr_reader :routes, :app_binding
+    attr_accessor :middleware, :public_path
 
-    def initialize(actions_binding, middleware: [])
+    def initialize(app_binding, middleware: [], public_path: 'public')
       @routes = []
-      @actions_binding = actions_binding
+      @app_binding = app_binding
 
       self.middleware = [middleware].flatten
+      self.public_path = public_path
     end
 
     def get(path, action: nil, actions: nil, redirect: nil)

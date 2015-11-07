@@ -44,7 +44,8 @@ module Cannon
     include EventMachine::Deferrable
 
     def initialize(ware, callback:, app:)
-      @ware, @callback, @app = instantiate(ware), callback, app
+      @app = app
+      @ware, @callback = instantiate(ware), callback
     end
 
     def run(request, response)

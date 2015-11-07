@@ -56,7 +56,7 @@ module Cannon
 
     def run(request, response)
       puts "Running action #{@action}"
-      @app.actions_binding.send(@action, request, response)
+      @app.app_binding.send(@action, request, response)
       if response.sent?
         fail
       else
