@@ -4,13 +4,14 @@ module Cannon
     attr_accessor :middleware, :public_path
 
     def initialize(app_binding, middleware: [], public_path: 'public')
-      define_environment
-
-      @routes = []
       @app_binding = app_binding
+      @routes = []
 
       self.middleware = [middleware].flatten
       self.public_path = public_path
+
+      define_environment
+      define_root
     end
 
     def get(path, action: nil, actions: nil, redirect: nil)
@@ -33,6 +34,12 @@ module Cannon
       cannon_env = ENV['CANNON_ENV'] || 'development'
       Cannon.send(:define_method, :env, -> { cannon_env })
       Cannon.send(:module_function, :env)
+    end
+
+    def define_root
+      root_wd = @app_binding.eval("Dir.getwd()")
+      Cannon.send(:define_method, :root, -> { root_wd })
+      Cannon.send(:module_function, :root)
     end
   end
 end
