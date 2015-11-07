@@ -37,8 +37,8 @@ module Cannon
     end
 
     def define_root
-      root_wd = @app_binding.eval("Dir.getwd()")
-      Cannon.send(:define_method, :root, -> { root_wd })
+      root_dir = @app_binding.eval('File.expand_path(File.dirname(__FILE__))')
+      Cannon.send(:define_method, :root, -> { root_dir })
       Cannon.send(:module_function, :root)
     end
   end
