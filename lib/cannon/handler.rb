@@ -9,22 +9,17 @@ module Cannon
 
     def process_http_request
       app.reload_environment if Cannon.env == 'development'
-      
+
       request = Request.new(self)
       response = Response.new(self)
 
       EM.defer(
         -> { middleware_runner.run(request, response) if middleware? },
-        ->(result) { handle_route(request, response) unless response.sent? }
+        ->(result) { response.send unless response.sent? }
       )
     end
 
   private
-
-    def handle_route(request, response)
-      matched_route = app.routes.find { |route| route.matches? request.path }
-      matched_route.nil? ? response.not_found : matched_route.handle(request, response)
-    end
 
     def middleware?
       app.middleware.size > 0
