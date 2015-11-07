@@ -48,24 +48,30 @@ module Cannon
 
     def initialize(http_server)
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
-      @sent = false
+      @flushed = false
       @headers = {}
 
       self.content = ''
       self.status = :ok
     end
 
-    def sent?
-      @sent
+    def flushed?
+      @flushed
     end
 
-    def send(content = self.content, status: self.status)
-      unless @sent
-        delegated_response.status = converted_status(status)
-        delegated_response.content = content
-        delegated_response.headers = self.headers
+    def send(content, status: self.status)
+      delegated_response.status = converted_status(status)
+      delegated_response.content += self.content + content
+      delegated_response.headers = self.headers
+
+      self.content = ''
+    end
+
+    def flush
+      unless flushed?
+        send('')
         delegated_response.send_response
-        @sent = true
+        @flushed = true
       end
     end
 
@@ -80,13 +86,13 @@ module Cannon
     def permanent_redirect(location)
       location_header(location)
       self.status = :moved_permanently
-      send
+      flush
     end
 
     def temporary_redirect(location)
       location_header(location)
       self.status = :found
-      send
+      flush
     end
 
     def not_found

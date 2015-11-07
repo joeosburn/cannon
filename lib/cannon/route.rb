@@ -52,7 +52,7 @@ module Cannon
     def run(request, response)
       puts "Running action #{@action}"
       @app.app_binding.send(@action, request, response)
-      if response.sent?
+      if response.flushed?
         fail
       else
         setup_callback

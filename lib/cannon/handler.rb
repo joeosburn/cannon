@@ -15,7 +15,7 @@ module Cannon
 
       EM.defer(
         -> { middleware_runner.run(request, response) if middleware? },
-        ->(result) { response.send unless response.sent? }
+        ->(result) { response.flush unless response.flushed? }
       )
     end
 

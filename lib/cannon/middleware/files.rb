@@ -17,6 +17,7 @@ module Cannon
           content_type = FileMagic.new(FileMagic::MAGIC_MIME).file(file_path)
           response.header('Content-Type', content_type)
           response.send(IO.binread(file_path))
+          response.flush
           false
         end
       end
