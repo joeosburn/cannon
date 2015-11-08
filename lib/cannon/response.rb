@@ -66,6 +66,7 @@ module Cannon
 
     def send(content, status: self.status)
       self.content ||= ''
+      self.status = status
       delegated_response.status = converted_status(status)
       delegated_response.content += content
       delegated_response.headers = self.headers
@@ -100,7 +101,7 @@ module Cannon
     end
 
     def not_found
-      send('Not Found', status: 404)
+      send('Not Found', status: :not_found)
     end
 
     def internal_server_error(title:, content:)
