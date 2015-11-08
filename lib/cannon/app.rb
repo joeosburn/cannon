@@ -60,7 +60,8 @@ module Cannon
     end
 
     def define_mime_type
-      cannon_method(:mime_types, MIME::Types)
+      Cannon.send(:define_method, :mime_type, ->(filepath) { MIME::Types.type_for(filepath.split('/').last).first })
+      Cannon.send(:module_function, :mime_type)
     end
 
     def cannon_method(name, value)

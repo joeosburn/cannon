@@ -11,10 +11,10 @@ module Cannon
         reload_cache if outdated_cache?
 
         if @public_path_array.include? request.path
-          file_path = "#{@base_path}#{request.path}"
-          content_type = Cannon.mime_types.type_for(file_path.split('/').last).first
+          filepath = "#{@base_path}#{request.path}"
+          content_type = Cannon.mime_type(filepath)
           response.header('Content-Type', content_type)
-          response.send(IO.binread(file_path))
+          response.send(IO.binread(filepath))
           response.flush
           false
         end
