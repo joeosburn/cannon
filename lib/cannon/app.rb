@@ -1,3 +1,5 @@
+require 'filemagic'
+
 module Cannon
   class App
     attr_reader :routes, :app_binding
@@ -13,6 +15,7 @@ module Cannon
 
       define_environment
       define_root
+      define_mime_type
     end
 
     def get(path, action: nil, actions: nil, redirect: nil)
@@ -53,6 +56,11 @@ module Cannon
 
     def define_root
       cannon_method(:root, @app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
+    end
+
+    def define_mime_type
+      file_magic = FileMagic.new(FileMagic::MAGIC_MIME)
+      cannon_method(:mime_types, file_magic)
     end
 
     def cannon_method(name, value)

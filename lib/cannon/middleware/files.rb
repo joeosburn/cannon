@@ -1,5 +1,3 @@
-require 'filemagic'
-
 module Cannon
   module Middleware
     class Files
@@ -14,7 +12,7 @@ module Cannon
 
         if @public_path_array.include? request.path
           file_path = "#{@base_path}#{request.path}"
-          content_type = FileMagic.new(FileMagic::MAGIC_MIME).file(file_path)
+          content_type = Cannon.mime_types.file(file_path)
           response.header('Content-Type', content_type)
           response.send(IO.binread(file_path))
           response.flush
