@@ -8,18 +8,25 @@ module Cannon
     end
 
     def process_http_request
-      app.reload_environment if Cannon.env == 'development'
-
       request = Request.new(self)
       response = Response.new(self)
 
+      app.reload_environment if Cannon.env == 'development'
+
       EM.defer(
         -> { middleware_runner.run(request, response) if middleware? },
-        ->(result) { response.flush unless response.flushed? }
+        ->(result) do
+          response.flush unless response.flushed?
+          puts "Response took #{time_ago_in_ms(request.start_time)} milliseconds" if Cannon.env == 'development'
+        end
       )
     end
 
   private
+
+    def time_ago_in_ms(time_ago)
+      Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
+    end
 
     def middleware?
       app.middleware.size > 0
