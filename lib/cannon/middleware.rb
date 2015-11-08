@@ -1,6 +1,7 @@
 require 'cannon/middleware/request_logger'
 require 'cannon/middleware/files'
 require 'cannon/middleware/router'
+require 'cannon/middleware/content_type'
 
 module Cannon
   class MiddlewareRunner
