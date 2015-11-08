@@ -1,7 +1,12 @@
 module Cannon
   class Response
+    extend Forwardable
+
     attr_reader :delegated_response, :headers
-    attr_accessor :content, :status
+    attr_accessor :status
+
+    delegate :content => :delegated_response
+    delegate :content= => :delegated_response
 
     HTTP_STATUS = {
       continue:                      100,
@@ -51,7 +56,6 @@ module Cannon
       @flushed = false
       @headers = {}
 
-      self.content = ''
       self.status = :ok
     end
 
@@ -61,10 +65,8 @@ module Cannon
 
     def send(content, status: self.status)
       delegated_response.status = converted_status(status)
-      delegated_response.content += self.content + content
+      delegated_response.content += content
       delegated_response.headers = self.headers
-
-      self.content = ''
     end
 
     def flush
