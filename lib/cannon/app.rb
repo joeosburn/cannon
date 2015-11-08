@@ -24,7 +24,7 @@ module Cannon
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << Cannon.root
-      load_environment if Cannon.env == 'production'
+      reload_environment if Cannon.env.production?
 
       EventMachine::run {
         EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
@@ -39,7 +39,16 @@ module Cannon
   private
 
     def define_environment
-      cannon_method(:env, ENV['CANNON_ENV'] || 'development')
+      cannon_method(:env, ENV['CANNON_ENV'] ? ENV['CANNON_ENV'].dup : 'development')
+      class << Cannon.env
+        def production?
+          self == 'production'
+        end
+
+        def development?
+          self == 'development'
+        end
+      end
     end
 
     def define_root

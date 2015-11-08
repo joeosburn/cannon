@@ -25,7 +25,7 @@ module Cannon
     private
 
       def outdated_cache?
-        if Cannon.env == 'production'
+        if Cannon.env.production?
           @signature.nil?
         else
           @signature != public_path_signature

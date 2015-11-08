@@ -11,13 +11,13 @@ module Cannon
       request = Request.new(self)
       response = Response.new(self)
 
-      app.reload_environment if Cannon.env == 'development'
+      app.reload_environment if Cannon.env.development?
 
       EM.defer(
         -> { middleware_runner.run(request, response) if middleware? },
         ->(result) do
           response.flush unless response.flushed?
-          puts "Response took #{time_ago_in_ms(request.start_time)} milliseconds" if Cannon.env == 'development'
+          puts "Response took #{time_ago_in_ms(request.start_time)} milliseconds" if Cannon.env.development?
         end
       )
     end
