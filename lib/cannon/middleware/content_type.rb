@@ -7,9 +7,7 @@ module Cannon
 
       def run(request, response)
         return unless response.headers['Content-Type'] == nil
-
-        content_type = Cannon.mime_types.buffer(response.content)
-        response.headers['Content-Type'] = content_type
+        response.headers['Content-Type'] = 'text/plain; charset=us-ascii'
       end
     end
   end

@@ -1,4 +1,4 @@
-require 'filemagic'
+require 'mime/types'
 
 module Cannon
   class App
@@ -59,8 +59,7 @@ module Cannon
     end
 
     def define_mime_type
-      file_magic = FileMagic.new(FileMagic::MAGIC_MIME)
-      cannon_method(:mime_types, file_magic)
+      cannon_method(:mime_types, MIME::Types)
     end
 
     def cannon_method(name, value)

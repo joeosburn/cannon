@@ -12,7 +12,7 @@ module Cannon
 
         if @public_path_array.include? request.path
           file_path = "#{@base_path}#{request.path}"
-          content_type = Cannon.mime_types.file(file_path)
+          content_type = Cannon.mime_types.type_for(file_path.split('/').last).first
           response.header('Content-Type', content_type)
           response.send(IO.binread(file_path))
           response.flush
