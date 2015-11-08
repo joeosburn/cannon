@@ -8,8 +8,8 @@ module Cannon
     end
 
     def process_http_request
-      request = Request.new(self)
-      response = Response.new(self)
+      request = Request.new(self, app)
+      response = Response.new(self, app)
 
       app.reload_environment if Cannon.env.development?
 

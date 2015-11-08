@@ -3,15 +3,16 @@ require 'mime/types'
 module Cannon
   class App
     attr_reader :routes, :app_binding
-    attr_accessor :middleware, :public_path
+    attr_accessor :middleware, :public_path, :view_path
 
-    def initialize(app_binding, middleware: [], public_path: 'public', &block)
+    def initialize(app_binding, middleware: [], public_path: 'public', view_path: 'views', &block)
       @app_binding = app_binding
       @routes = []
       @load_environment = block
 
       self.middleware = [middleware].flatten
       self.public_path = public_path
+      self.view_path = view_path
 
       define_environment
       define_root

@@ -3,7 +3,7 @@ module Cannon
     attr_accessor :protocol, :http_method, :cookie, :content_type, :path, :uri, :query_string, :post_content, :headers,
                   :start_time
 
-    def initialize(http_server)
+    def initialize(http_server, app)
       self.protocol = http_server.instance_variable_get('@http_protocol')
       self.http_method = http_server.instance_variable_get('@http_request_method')
       self.cookie = http_server.instance_variable_get('@http_cookie')

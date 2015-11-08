@@ -51,10 +51,11 @@ module Cannon
       http_version_not_supported:    505,
     }
 
-    def initialize(http_server)
+    def initialize(http_server, app)
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @flushed = false
       @headers = {}
+      @view_path = "#{Cannon.root}/#{app.view_path}"
 
       self.status = :ok
     end
@@ -105,6 +106,14 @@ module Cannon
     def internal_server_error(title:, content:)
       html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
       send(html, status: :internal_server_error)
+    end
+
+    def view(filename, status: :ok)
+      filepath = "#{@view_path}/#{filename}"
+      view_data = IO.binread(filepath)
+      mime_type = Cannon.mime_types.type_for(filepath.split('/').last).first
+      header('Content-Type', mime_type) if mime_type
+      send(view_data, status: status)
     end
 
   private
