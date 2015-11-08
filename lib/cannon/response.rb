@@ -64,6 +64,7 @@ module Cannon
     end
 
     def send(content, status: self.status)
+      self.content ||= ''
       delegated_response.status = converted_status(status)
       delegated_response.content += content
       delegated_response.headers = self.headers
