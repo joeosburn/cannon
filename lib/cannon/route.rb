@@ -50,8 +50,14 @@ module Cannon
     end
 
     def run(request, response)
-      puts "Running action #{@action}"
-      @app.app_binding.send(@action, request, response)
+      if @action.is_a? Proc
+        puts 'Action: Inline'
+        @action.call(request, response)
+      else
+        puts "Action: #{@action}"
+        @app.app_binding.send(@action, request, response)
+      end
+      
       if response.flushed?
         fail
       else

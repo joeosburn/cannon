@@ -27,6 +27,9 @@ RSpec.describe 'Cannon app' do
       app.get('/how', actions: ['hi', 'how', 'are_you'])
       app.get('/view', action: 'test_view')
       app.get('/bad', action: 'raise_500')
+      app.get('/inline') do |request, response|
+        response.send('inline action')
+      end
 
       app.view_path = '../fixtures/views'
       app.public_path = '../fixtures/public'
@@ -54,6 +57,12 @@ RSpec.describe 'Cannon app' do
       get '/how'
       expect(response.code).to eq('200')
       expect(response.body).to eq('hi how are you?')
+    end
+
+    it 'handles inline actions' do
+      get '/inline'
+      expect(response.code).to eq('200')
+      expect(response.body).to eq('inline action')
     end
 
     it 'renders a view' do

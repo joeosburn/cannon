@@ -19,8 +19,8 @@ module Cannon
       define_mime_type
     end
 
-    def get(path, action: nil, actions: nil, redirect: nil)
-      routes << Route.new(self, path: path, actions: [action, actions].flatten.compact, redirect: redirect)
+    def get(path, action: nil, actions: nil, redirect: nil, &block)
+      routes << Route.new(self, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
     end
 
     def listen(port: 8080)
