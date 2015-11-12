@@ -6,7 +6,7 @@ module Cannon
       end
 
       def run(request, response)
-        matched_route = @app.routes.find { |route| route.matches? request.path }
+        matched_route = @app.routes.find { |route| route.matches? request }
         matched_route.nil? ? response.not_found : matched_route.handle(request, response)
       end
     end

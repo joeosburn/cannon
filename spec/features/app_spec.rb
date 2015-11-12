@@ -34,6 +34,14 @@ RSpec.describe 'Cannon app' do
         response.send("key = #{request.params[:key]}, place = #{request.params[:place]}")
       end
 
+      app.get('/resource/:id') do |request, response|
+        response.send("id = #{request.params[:id]}")
+      end
+
+      app.get('/:type/by-grouping/:grouping') do |request, response|
+        response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
+      end
+
       app.view_path = '../fixtures/views'
       app.public_path = '../fixtures/public'
     end
@@ -71,6 +79,13 @@ RSpec.describe 'Cannon app' do
     it 'handles query params' do
       get '/value?place=123&key=a+value&place=12+ave%20st'
       expect(response.body).to eq('key = a value, place = 12 ave st')
+    end
+
+    it 'handles params in routes' do
+      get '/resource/12'
+      expect(response.body).to eq('id = 12')
+      get '/messages/by-grouping/author?sort=name'
+      expect(response.body).to eq('type=messages, grouping=author, sort=name')
     end
 
     it 'renders a view' do
