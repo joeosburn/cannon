@@ -1,3 +1,5 @@
+require 'cgi'
+
 module Cannon
     class Request
     attr_accessor :protocol, :http_method, :cookie, :content_type, :path, :uri, :query_string, :post_content, :headers,
@@ -14,6 +16,16 @@ module Cannon
       self.post_content = http_server.instance_variable_get('@http_post_content')
       self.headers = http_server.instance_variable_get('@http_headers')
       self.start_time = Time.now
+    end
+
+    def params
+      @params ||= parse_params
+    end
+
+  private
+
+    def parse_params
+      Hash[CGI::parse(query_string || '').map { |(k, v)| [k.to_sym, v.last] }]
     end
   end
 end
