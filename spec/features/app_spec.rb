@@ -39,7 +39,7 @@ RSpec.describe 'Cannon app' do
   describe 'basic get request' do
     it 'handles a simple action' do
       get '/hi'
-      expect(response.code).to eq('200')
+      expect(response.code).to be(200)
       expect(response.body).to eq('hi')
     end
 
@@ -55,13 +55,13 @@ RSpec.describe 'Cannon app' do
 
     it 'handles an action chain' do
       get '/how'
-      expect(response.code).to eq('200')
+      expect(response.code).to be(200)
       expect(response.body).to eq('hi how are you?')
     end
 
     it 'handles inline actions' do
       get '/inline'
-      expect(response.code).to eq('200')
+      expect(response.code).to be(200)
       expect(response.body).to eq('inline action')
     end
 
@@ -74,19 +74,19 @@ RSpec.describe 'Cannon app' do
     it 'serves files' do
       get '/background.jpg'
       expect(response.body.size).to_not eq('')
-      expect(response.code).to eq('200')
+      expect(response.code).to be(200)
       expect(response['Content-Type']).to eq('image/jpeg')
       expect(response['Content-Length']).to eq('55697')
     end
 
     it 'returns 404 for not found routes' do
       get '/badroute'
-      expect(response.code).to eq('404')
+      expect(response.code).to be(404)
     end
 
     it 'returns 500 for errors' do
       get '/bad'
-      expect(response.code).to eq('500')
+      expect(response.code).to be(500)
     end
   end
 end
