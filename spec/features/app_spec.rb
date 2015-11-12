@@ -30,6 +30,9 @@ RSpec.describe 'Cannon app' do
       app.get('/inline') do |request, response|
         response.send('inline action')
       end
+      app.get('/value') do |request, response|
+        response.send("key = #{request.params[:key]}, place = #{request.params[:place]}")
+      end
 
       app.view_path = '../fixtures/views'
       app.public_path = '../fixtures/public'
@@ -63,6 +66,11 @@ RSpec.describe 'Cannon app' do
       get '/inline'
       expect(response.code).to be(200)
       expect(response.body).to eq('inline action')
+    end
+
+    it 'handles query params' do
+      get '/value?place=123&key=a+value&place=12+ave%20st'
+      expect(response.body).to eq('key = a value, place = 12 ave st')
     end
 
     it 'renders a view' do
