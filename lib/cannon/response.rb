@@ -55,7 +55,7 @@ module Cannon
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @flushed = false
       @headers = {}
-      @view_path = "#{Cannon.root}/#{app.view_path}"
+      @view_path = "#{Cannon.root}/#{app.config.view_path}"
 
       self.status = :ok
     end

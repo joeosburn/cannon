@@ -3,7 +3,7 @@ module Cannon
     class Files
       def initialize(app)
         @app = app
-        @base_path = "#{Cannon.root}/#{@app.public_path}"
+        @base_path = "#{Cannon.root}/#{@app.config.public_path}"
         @signature = nil
       end
 

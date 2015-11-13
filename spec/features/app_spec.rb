@@ -42,8 +42,8 @@ RSpec.describe 'Cannon app' do
         response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
       end
 
-      app.view_path = '../fixtures/views'
-      app.public_path = '../fixtures/public'
+      app.config.view_path = '../fixtures/views'
+      app.config.public_path = '../fixtures/public'
     end
   end
 
