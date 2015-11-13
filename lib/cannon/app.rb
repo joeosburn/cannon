@@ -3,20 +3,23 @@ require 'mime/types'
 module Cannon
   class App
     attr_reader :routes, :app_binding
-    attr_accessor :middleware, :public_path, :view_path
 
-    def initialize(app_binding, middleware: [], public_path: 'public', view_path: 'views', &block)
+    CONFIG_OPTIONS = [:middleware, :public_path, :view_path]
+    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Router ContentType}
+
+    def initialize(app_binding, &block)
       @app_binding = app_binding
       @routes = []
       @load_environment = block
 
-      self.middleware = [middleware].flatten
-      self.public_path = public_path
-      self.view_path = view_path
+      config.middleware = DEFAULT_MIDDLEWARE
+      config.public_path = 'public'
+      config.view_path = 'views'
 
-      define_environment
-      define_root
-      define_mime_type
+      define_cannon_environment
+      define_cannon_root
+      define_cannon_mime_type
+      define_cannon_config
     end
 
     def get(path, action: nil, actions: nil, redirect: nil, &block)
@@ -40,9 +43,17 @@ module Cannon
       @load_environment.call unless @load_environment.nil?
     end
 
+    def config
+      @config ||= create_config
+    end
+
   private
 
-    def define_environment
+    def create_config
+      Struct.new(*CONFIG_OPTIONS).new
+    end
+
+    def define_cannon_environment
       cannon_method(:env, ENV['CANNON_ENV'] ? ENV['CANNON_ENV'].dup : 'development')
       class << Cannon.env
         def production?
@@ -55,11 +66,15 @@ module Cannon
       end
     end
 
-    def define_root
+    def define_cannon_config
+      cannon_method(:config, self.config)
+    end
+
+    def define_cannon_root
       cannon_method(:root, @app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
     end
 
-    def define_mime_type
+    def define_cannon_mime_type
       Cannon.send(:define_method, :mime_type, ->(filepath) { MIME::Types.type_for(filepath.split('/').last).first })
       Cannon.send(:module_function, :mime_type)
     end

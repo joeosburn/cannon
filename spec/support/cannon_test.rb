@@ -18,7 +18,6 @@ module Cannon::Test
   def cannon_app(&block)
     Thread.abort_on_exception = true
     app = Cannon::App.new(block.binding)
-    app.middleware = ['RequestLogger', 'Files', 'Router', 'ContentType']
     yield app
     Thread.new { app.listen(port: PORT) }
     sleep 0.1

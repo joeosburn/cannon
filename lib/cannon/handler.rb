@@ -29,11 +29,11 @@ module Cannon
     end
 
     def middleware?
-      app.middleware.size > 0
+      app.config.middleware.size > 0
     end
 
     def middleware_runner
-      @middleware_runner ||= build_middleware_runner(app.middleware.dup)
+      @middleware_runner ||= build_middleware_runner(app.config.middleware.dup)
     end
 
     def build_middleware_runner(middleware, callback: nil)
