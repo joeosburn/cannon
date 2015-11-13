@@ -5,14 +5,16 @@ module Cannon
     attr_reader :routes, :app_binding
     attr_accessor :middleware, :public_path, :view_path
 
-    def initialize(app_binding, middleware: [], public_path: 'public', view_path: 'views', &block)
+    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Router ContentType}
+
+    def initialize(app_binding, &block)
       @app_binding = app_binding
       @routes = []
       @load_environment = block
 
-      self.middleware = [middleware].flatten
-      self.public_path = public_path
-      self.view_path = view_path
+      self.middleware = DEFAULT_MIDDLEWARE
+      self.public_path = 'public'
+      self.view_path = 'views'
 
       define_environment
       define_root
