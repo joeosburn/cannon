@@ -4,6 +4,7 @@ module Cannon
   class App
     attr_reader :routes, :app_binding
 
+    CONFIG_OPTIONS = [:middleware, :public_path, :view_path]
     DEFAULT_MIDDLEWARE = %w{RequestLogger Files Router ContentType}
 
     def initialize(app_binding, &block)
@@ -49,7 +50,7 @@ module Cannon
   private
 
     def create_config
-      Struct.new(:middleware, :public_path, :view_path).new
+      Struct.new(*CONFIG_OPTIONS).new
     end
 
     def define_cannon_environment
