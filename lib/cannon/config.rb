@@ -2,7 +2,7 @@ module Cannon
   class UnknownLogLevel < StandardError; end
 
   class Config
-    attr_accessor :middleware, :public_path, :view_path, :reload_on_request, :benchmark_requests
+    attr_accessor :middleware, :public_path, :view_path, :reload_on_request, :benchmark_requests, :port, :ip_address
     attr_reader :logger, :log_level
 
     DEFAULT_MIDDLEWARE = %w{RequestLogger Files Router ContentType}
@@ -17,6 +17,8 @@ module Cannon
     }
 
     def initialize
+      self.ip_address = '127.0.0.1'
+      self.port = 8080
       self.middleware = DEFAULT_MIDDLEWARE
       self.public_path = 'public'
       self.view_path = 'views'

@@ -6,10 +6,13 @@ module Cannon
   class App
     attr_reader :routes, :app_binding
 
-    def initialize(app_binding, &block)
+    def initialize(app_binding, port: nil, ip_address: nil, &block)
       @app_binding = app_binding
       @routes = []
       @load_environment = block
+
+      config.port = port unless port.nil?
+      config.ip_address = ip_address unless ip_address.nil?
 
       define_cannon_environment
       define_cannon_root
@@ -23,7 +26,7 @@ module Cannon
       routes << Route.new(self, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
     end
 
-    def listen(port: 8080, async: false)
+    def listen(port: config.port, ip_address: config.ip_address, async: false)
       raise AlreadyListening, 'App is currently listening' unless @running_app.nil?
 
       cannon_app = self
@@ -34,7 +37,7 @@ module Cannon
 
       server_block = -> do
         EventMachine::run {
-          EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
+          EventMachine::start_server(ip_address, port, Cannon::Handler)
           Cannon.logger.info "Cannon listening on port #{port}..."
         }
       end
