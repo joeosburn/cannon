@@ -18,7 +18,7 @@ module Cannon
 
     def initialize
       self.ip_address = '127.0.0.1'
-      self.port = 8080
+      self.port = 5030
       self.middleware = DEFAULT_MIDDLEWARE
       self.public_path = 'public'
       self.view_path = 'views'

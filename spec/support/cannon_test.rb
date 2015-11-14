@@ -13,7 +13,7 @@ class MockResponse
 end
 
 module Cannon::Test
-  PORT = 8081
+  PORT = 5031
 
   def cannon_app
     @cannon_app ||= create_cannon_app
