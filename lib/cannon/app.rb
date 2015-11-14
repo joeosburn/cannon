@@ -52,7 +52,7 @@ module Cannon
 
     def stop
       return if @running_app.nil?
-      @running_app.kill
+      EventMachine::stop_event_loop
       @running_app = nil
       Thread.abort_on_exception = false
     end
