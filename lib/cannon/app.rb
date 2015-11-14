@@ -4,19 +4,10 @@ module Cannon
   class App
     attr_reader :routes, :app_binding
 
-    CONFIG_OPTIONS = [:middleware, :public_path, :view_path, :reload_on_request, :benchmark_requests]
-    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Router ContentType}
-
     def initialize(app_binding, &block)
       @app_binding = app_binding
       @routes = []
       @load_environment = block
-
-      config.middleware = DEFAULT_MIDDLEWARE
-      config.public_path = 'public'
-      config.view_path = 'views'
-      config.reload_on_request = false
-      config.benchmark_requests = true
 
       define_cannon_environment
       define_cannon_root
@@ -54,7 +45,7 @@ module Cannon
     end
 
     def config
-      @config ||= create_config
+      @config ||= Config.new
     end
 
     def env
@@ -62,10 +53,6 @@ module Cannon
     end
 
   private
-
-    def create_config
-      Struct.new(*CONFIG_OPTIONS).new
-    end
 
     def detect_env
       ENV['CANNON_ENV'] ? ENV['CANNON_ENV'].dup : 'development'

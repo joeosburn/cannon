@@ -1,6 +1,7 @@
 require 'eventmachine'
 require 'evma_httpserver'
 
+require 'cannon/config'
 require 'cannon/request'
 require 'cannon/response'
 require 'cannon/middleware'
