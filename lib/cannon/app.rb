@@ -35,26 +35,31 @@ module Cannon
       $LOAD_PATH << Cannon.root
       reload_environment unless config.reload_on_request
 
-      server_block = -> do
+      server_block = ->(notifier) do
         EventMachine::run {
           EventMachine::start_server(ip_address, port, Cannon::Handler)
+          notifier << true unless notifier.nil? # notify the calling thread that the server started if async
           Cannon.logger.info "Cannon listening on port #{port}..."
         }
       end
 
       if async
+        notification = Queue.new
         Thread.abort_on_exception = true
-        @running_app = Thread.new { server_block.call }
+        @running_app = Thread.new { server_block.call(notification) }
+        notification.pop
       else
-        server_block.call
+        server_block.call(nil)
       end
     end
 
     def stop
       return if @running_app.nil?
       EventMachine::stop_event_loop
-      @running_app = nil
+      @running_app.join(10)
+      @running_app.kill unless @running_app.stop?
       Thread.abort_on_exception = false
+      @running_app = nil
     end
 
     def reload_environment
