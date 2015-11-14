@@ -1,6 +1,8 @@
 require 'mime/types'
 
 module Cannon
+  class AlreadyListening < StandardError; end
+
   class App
     attr_reader :routes, :app_binding
 
@@ -22,6 +24,8 @@ module Cannon
     end
 
     def listen(port: 8080, async: false)
+      raise AlreadyListening, 'App is currently listening' unless @running_app.nil?
+
       cannon_app = self
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
@@ -45,8 +49,9 @@ module Cannon
 
     def stop
       return if @running_app.nil?
-
       @running_app.kill
+      @running_app = nil
+      Thread.abort_on_exception = false
     end
 
     def reload_environment
