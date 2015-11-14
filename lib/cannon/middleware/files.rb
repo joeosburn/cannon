@@ -23,10 +23,10 @@ module Cannon
     private
 
       def outdated_cache?
-        if Cannon.env.production?
-          @signature.nil?
-        else
+        if @app.config.reload_on_request
           @signature != public_path_signature
+        else
+          @signature.nil?
         end
       end
 

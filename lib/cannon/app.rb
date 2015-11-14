@@ -4,7 +4,7 @@ module Cannon
   class App
     attr_reader :routes, :app_binding
 
-    CONFIG_OPTIONS = [:middleware, :public_path, :view_path]
+    CONFIG_OPTIONS = [:middleware, :public_path, :view_path, :reload_on_request, :benchmark_requests]
     DEFAULT_MIDDLEWARE = %w{RequestLogger Files Router ContentType}
 
     def initialize(app_binding, &block)
@@ -15,6 +15,8 @@ module Cannon
       config.middleware = DEFAULT_MIDDLEWARE
       config.public_path = 'public'
       config.view_path = 'views'
+      config.reload_on_request = false
+      config.benchmark_requests = true
 
       define_cannon_environment
       define_cannon_root
@@ -31,7 +33,7 @@ module Cannon
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << Cannon.root
-      reload_environment if Cannon.env.production?
+      reload_environment unless config.reload_on_request
 
       EventMachine::run {
         EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
