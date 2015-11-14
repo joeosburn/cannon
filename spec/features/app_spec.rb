@@ -108,8 +108,11 @@ RSpec.describe 'Cannon app' do
     end
 
     it 'returns 500 for errors' do
+      old_log_level = Cannon.config.log_level
+      Cannon.config.log_level = :fatal
       get '/bad'
       expect(response.code).to be(500)
+      Cannon.config.log_level = old_log_level
     end
   end
 end
