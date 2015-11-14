@@ -21,17 +21,32 @@ module Cannon
       routes << Route.new(self, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
     end
 
-    def listen(port: 8080)
+    def listen(port: 8080, async: false)
       cannon_app = self
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << Cannon.root
       reload_environment unless config.reload_on_request
 
-      EventMachine::run {
-        EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
-        Cannon.logger.info "Cannon listening on port #{port}..."
-      }
+      server_block = -> do
+        EventMachine::run {
+          EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
+          Cannon.logger.info "Cannon listening on port #{port}..."
+        }
+      end
+
+      if async
+        Thread.abort_on_exception = true
+        @running_app = Thread.new { server_block.call }
+      else
+        server_block.call
+      end
+    end
+
+    def stop
+      return if @running_app.nil?
+
+      @running_app.kill
     end
 
     def reload_environment

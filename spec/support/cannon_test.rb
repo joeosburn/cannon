@@ -15,15 +15,6 @@ end
 module Cannon::Test
   PORT = 8081
 
-  def cannon_app(&block)
-    Thread.abort_on_exception = true
-    app = Cannon::App.new(block.binding)
-    app.config.log_level = :error
-    yield app
-    Thread.new { app.listen(port: PORT) }
-    sleep 0.1
-  end
-
   def get(path)
     path = "/#{path}" unless path =~ /^\//
     uri = URI("http://127.0.0.1:#{PORT}#{path}")
