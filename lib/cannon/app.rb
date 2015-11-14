@@ -22,6 +22,7 @@ module Cannon
       define_cannon_root
       define_cannon_mime_type
       define_cannon_config
+      define_cannon_configure_method
     end
 
     def get(path, action: nil, actions: nil, redirect: nil, &block)
@@ -45,8 +46,19 @@ module Cannon
       @load_environment.call unless @load_environment.nil?
     end
 
+    def configure(*environments, &block)
+      environments.each do |environment|
+        define_env_helper(environment)
+        yield config if Cannon.env == environment.to_s
+      end
+    end
+
     def config
       @config ||= create_config
+    end
+
+    def env
+      @env ||= detect_env
     end
 
   private
@@ -55,21 +67,29 @@ module Cannon
       Struct.new(*CONFIG_OPTIONS).new
     end
 
-    def define_cannon_environment
-      cannon_method(:env, ENV['CANNON_ENV'] ? ENV['CANNON_ENV'].dup : 'development')
-      class << Cannon.env
-        def production?
-          self == 'production'
-        end
+    def detect_env
+      ENV['CANNON_ENV'] ? ENV['CANNON_ENV'].dup : 'development'
+    end
 
-        def development?
-          self == 'development'
-        end
-      end
+    def define_cannon_environment
+      cannon_method(:env, self.env)
+      define_env_helper(self.env)
+    end
+
+    def define_env_helper(env)
+      helper_method = "#{env}?"
+      return if Cannon.env.respond_to?(helper_method)
+      Cannon.env.singleton_class.send(:define_method, helper_method) { Cannon.env == env }
     end
 
     def define_cannon_config
       cannon_method(:config, self.config)
+    end
+
+    def define_cannon_configure_method
+      app = self
+      Cannon.send(:define_method, :configure, ->(*environments, &block) { app.configure(*environments, &block) })
+      Cannon.send(:module_function, :configure)
     end
 
     def define_cannon_root
