@@ -15,6 +15,10 @@ end
 module Cannon::Test
   PORT = 8081
 
+  def cannon_app
+    @cannon_app ||= create_cannon_app
+  end
+
   def get(path)
     path = "/#{path}" unless path =~ /^\//
     uri = URI("http://127.0.0.1:#{PORT}#{path}")
@@ -26,6 +30,14 @@ module Cannon::Test
 
   def response
     @response
+  end
+
+private
+
+  def create_cannon_app
+    app = Cannon::App.new(binding, port: PORT, ip_address: '127.0.0.1')
+    app.config.log_level = :error
+    app
   end
 
 end
