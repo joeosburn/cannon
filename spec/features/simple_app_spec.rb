@@ -22,32 +22,34 @@ end
 
 RSpec.describe 'Cannon app' do
   before(:all) do
-    cannon_app do |app|
-      app.get('/hi', action: 'hi')
-      app.get('/how', actions: ['hi', 'how', 'are_you'])
-      app.get('/view', action: 'test_view')
-      app.get('/bad', action: 'raise_500')
-      app.get('/inline') do |request, response|
-        response.send('inline action')
-      end
-      app.get('/value') do |request, response|
-        response.send("key = #{request.params[:key]}, place = #{request.params[:place]}")
-      end
+    cannon_app.config.view_path = '../fixtures/views'
+    cannon_app.config.public_path = '../fixtures/public'
 
-      app.get('/resource/:id') do |request, response|
-        response.send("id = #{request.params[:id]}")
-      end
-
-      app.get('/:type/by-grouping/:grouping') do |request, response|
-        response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
-      end
-
-      app.config.view_path = '../fixtures/views'
-      app.config.public_path = '../fixtures/public'
+    cannon_app.get('/hi', action: 'hi')
+    cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])
+    cannon_app.get('/view', action: 'test_view')
+    cannon_app.get('/bad', action: 'raise_500')
+    cannon_app.get('/inline') do |request, response|
+      response.send('inline action')
     end
+    cannon_app.get('/value') do |request, response|
+      response.send("key = #{request.params[:key]}, place = #{request.params[:place]}")
+    end
+
+    cannon_app.get('/resource/:id') do |request, response|
+      response.send("id = #{request.params[:id]}")
+    end
+
+    cannon_app.get('/:type/by-grouping/:grouping') do |request, response|
+      response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
+    end
+
+    cannon_app.listen(async: true)
   end
 
-  describe 'basic get request' do
+  after(:all) { cannon_app.stop }
+
+  describe 'basic get requests' do
     it 'handles a simple action' do
       get '/hi'
       expect(response.code).to be(200)

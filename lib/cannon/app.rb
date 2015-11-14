@@ -1,13 +1,18 @@
 require 'mime/types'
 
 module Cannon
+  class AlreadyListening < StandardError; end
+
   class App
     attr_reader :routes, :app_binding
 
-    def initialize(app_binding, &block)
+    def initialize(app_binding, port: nil, ip_address: nil, &block)
       @app_binding = app_binding
       @routes = []
       @load_environment = block
+
+      config.port = port unless port.nil?
+      config.ip_address = ip_address unless ip_address.nil?
 
       define_cannon_environment
       define_cannon_root
@@ -21,17 +26,40 @@ module Cannon
       routes << Route.new(self, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
     end
 
-    def listen(port: 8080)
+    def listen(port: config.port, ip_address: config.ip_address, async: false)
+      raise AlreadyListening, 'App is currently listening' unless @running_app.nil?
+
       cannon_app = self
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << Cannon.root
       reload_environment unless config.reload_on_request
 
-      EventMachine::run {
-        EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
-        Cannon.logger.info "Cannon listening on port #{port}..."
-      }
+      server_block = ->(notifier) do
+        EventMachine::run {
+          EventMachine::start_server(ip_address, port, Cannon::Handler)
+          notifier << true unless notifier.nil? # notify the calling thread that the server started if async
+          Cannon.logger.info "Cannon listening on port #{port}..."
+        }
+      end
+
+      if async
+        notification = Queue.new
+        Thread.abort_on_exception = true
+        @running_app = Thread.new { server_block.call(notification) }
+        notification.pop
+      else
+        server_block.call(nil)
+      end
+    end
+
+    def stop
+      return if @running_app.nil?
+      EventMachine::stop_event_loop
+      @running_app.join(10)
+      @running_app.kill unless @running_app.stop?
+      Thread.abort_on_exception = false
+      @running_app = nil
     end
 
     def reload_environment
