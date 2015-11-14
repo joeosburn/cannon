@@ -5,7 +5,7 @@ module Cannon
       end
 
       def run(request, response)
-        puts "#{request.http_method} #{request.path}"
+        Cannon.logger.info "#{request.http_method} #{request.path}"
       end
     end
   end

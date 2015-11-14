@@ -17,7 +17,7 @@ module Cannon
         -> { middleware_runner.run(request, response) if middleware? },
         ->(result) do
           response.flush unless response.flushed?
-          puts "Response took #{time_ago_in_ms(request.start_time)}ms" if app.config.benchmark_requests
+          Cannon.logger.info "Response took #{time_ago_in_ms(request.start_time)}ms" if app.config.benchmark_requests
         end
       )
     end

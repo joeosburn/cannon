@@ -25,7 +25,6 @@ module Cannon::Test
 
   def get(path)
     path = "/#{path}" unless path =~ /^\//
-    puts "http://127.0.0.1:#{PORT}#{path}"
     uri = URI("http://127.0.0.1:#{PORT}#{path}")
     @response = MockResponse.new(Net::HTTP.start(uri.host, uri.port) do |http|
       request = Net::HTTP::Get.new uri.request_uri

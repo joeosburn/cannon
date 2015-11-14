@@ -26,8 +26,8 @@ module Cannon
         begin
           @route_action.run(request, response)
         rescue => error
-          puts error.message
-          puts error.backtrace
+          Cannon.logger.error error.message
+          Cannon.logger.error error.backtrace.join("\n")
           response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
         end
       end
@@ -80,10 +80,10 @@ module Cannon
 
     def run(request, response)
       if @action.is_a? Proc
-        puts 'Action: Inline'
+        Cannon.logger.debug 'Action: Inline'
         @action.call(request, response)
       else
-        puts "Action: #{@action}"
+        Cannon.logger.debug "Action: #{@action}"
         @app.app_binding.send(@action, request, response)
       end
 

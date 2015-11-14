@@ -14,6 +14,7 @@ module Cannon
       define_cannon_mime_type
       define_cannon_config
       define_cannon_configure_method
+      define_cannon_logger
     end
 
     def get(path, action: nil, actions: nil, redirect: nil, &block)
@@ -29,7 +30,7 @@ module Cannon
 
       EventMachine::run {
         EventMachine::start_server('127.0.0.1', port, Cannon::Handler)
-        puts "Cannon listening on port #{port}..."
+        Cannon.logger.info "Cannon listening on port #{port}..."
       }
     end
 
@@ -81,6 +82,12 @@ module Cannon
 
     def define_cannon_root
       cannon_method(:root, @app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
+    end
+
+    def define_cannon_logger
+      app = self
+      Cannon.send(:define_method, :logger, -> { app.config.logger })
+      Cannon.send(:module_function, :logger)
     end
 
     def define_cannon_mime_type
