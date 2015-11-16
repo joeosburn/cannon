@@ -3,7 +3,7 @@ module Cannon
     class Files
       def initialize(app)
         @app = app
-        @base_path = "#{Cannon.root}/#{@app.config.public_path}"
+        @base_path = build_base_path
         @signature = nil
       end
 
@@ -21,6 +21,10 @@ module Cannon
       end
 
     private
+
+      def build_base_path
+        @app.config.public_path =~ /^\// ? @app.config.public_path : "#{Cannon.root}/#{@app.config.public_path}"
+      end
 
       def outdated_cache?
         if @app.config.reload_on_request

@@ -93,6 +93,7 @@ RSpec.describe 'Cannon app' do
     it 'renders a view' do
       get '/view'
       expect(response.body).to eq('Test view content')
+      expect(response.code).to be(200)
       expect(response['Content-Type']).to eq('text/html')
     end
 
@@ -102,6 +103,15 @@ RSpec.describe 'Cannon app' do
       expect(response.code).to be(200)
       expect(response['Content-Type']).to eq('image/jpeg')
       expect(response['Content-Length']).to eq('55697')
+    end
+
+    it 'handles full paths for view_path and public_path' do
+      cannon_app.config.view_path = Cannon.root + '/../fixtures/views'
+      cannon_app.config.public_path = Cannon.root + '/../fixtures/public'
+      get '/background.jpg'
+      expect(response.code).to be(200)
+      get '/view'
+      expect(response.code).to be(200)
     end
 
     it 'returns 404 for not found routes' do
