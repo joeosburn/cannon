@@ -20,6 +20,15 @@ def raise_500(request, response)
   bad_fail_code
 end
 
+class World
+  def initialize(app)
+  end
+
+  def hello(request, response)
+    response.send('Hello World!')
+  end
+end
+
 RSpec.describe 'Cannon app' do
   before(:all) do
     cannon_app.config.view_path = '../fixtures/views'
@@ -27,6 +36,7 @@ RSpec.describe 'Cannon app' do
 
     cannon_app.get('/hi', action: 'hi')
     cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])
+    cannon_app.get('/hello', action: 'World#hello')
     cannon_app.get('/view', action: 'test_view')
     cannon_app.get('/bad', action: 'raise_500')
     cannon_app.get('/inline') do |request, response|
@@ -125,6 +135,12 @@ RSpec.describe 'Cannon app' do
       get '/bad'
       expect(response.code).to be(500)
       Cannon.config.log_level = old_log_level
+    end
+
+    it 'handles class based actions' do
+      get '/hello'
+      expect(response.body).to eq('Hello World!')
+      expect(response.code).to eq(200)
     end
   end
 end

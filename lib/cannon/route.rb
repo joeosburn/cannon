@@ -82,6 +82,9 @@ module Cannon
       if @action.is_a? Proc
         Cannon.logger.debug 'Action: Inline'
         @action.call(request, response)
+      elsif @action.include? '#'
+        controller, action = @action.split('#')
+        Object.const_get(controller).new(@app).send(action, request, response)
       else
         Cannon.logger.debug "Action: #{@action}"
         @app.app_binding.send(@action, request, response)
