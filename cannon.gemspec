@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'eventmachine', '~> 1.0.8'
   spec.add_dependency 'eventmachine_httpserver'
   spec.add_dependency 'mime-types', '~> 2.6.2'
+  spec.add_dependency 'mustache', '~> 1.0.2'
 
   spec.add_development_dependency 'rspec', '~> 3.3.0'
 end

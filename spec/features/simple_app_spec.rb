@@ -61,6 +61,10 @@ RSpec.describe 'Cannon app' do
       response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
     end
 
+    cannon_app.get('/render') do |request, response|
+      response.view('render_test.html', name: 'John Calvin')
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -157,6 +161,11 @@ RSpec.describe 'Cannon app' do
       expect(response.body).to eq('count = 1')
       get '/count'
       expect(response.body).to eq('count = 2')
+    end
+
+    it 'does mustache based rendering' do
+      get '/render'
+      expect(response.body).to eq('Hello John Calvin')
     end
   end
 end
