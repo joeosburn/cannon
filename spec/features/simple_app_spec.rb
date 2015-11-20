@@ -22,10 +22,16 @@ end
 
 class World
   def initialize(app)
+    @count = 0
   end
 
   def hello(request, response)
     response.send('Hello World!')
+  end
+
+  def count(request, response)
+    response.send("count = #{@count}")
+    @count += 1
   end
 end
 
@@ -37,6 +43,7 @@ RSpec.describe 'Cannon app' do
     cannon_app.get('/hi', action: 'hi')
     cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])
     cannon_app.get('/hello', action: 'World#hello')
+    cannon_app.get('/count', action: 'World#count')
     cannon_app.get('/view', action: 'test_view')
     cannon_app.get('/bad', action: 'raise_500')
     cannon_app.get('/inline') do |request, response|
@@ -137,10 +144,19 @@ RSpec.describe 'Cannon app' do
       Cannon.config.log_level = old_log_level
     end
 
-    it 'handles class based actions' do
+    it 'handles controller based actions' do
       get '/hello'
       expect(response.body).to eq('Hello World!')
       expect(response.code).to eq(200)
+    end
+
+    it 'keeps the instantiation of the controller' do
+      get '/count'
+      expect(response.body).to eq('count = 0')
+      get '/count'
+      expect(response.body).to eq('count = 1')
+      get '/count'
+      expect(response.body).to eq('count = 2')
     end
   end
 end

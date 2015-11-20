@@ -74,6 +74,16 @@ module Cannon
   class RouteAction
     include EventMachine::Deferrable
 
+    class << self
+      def controller(name, app)
+        controllers[name] ||= Object.const_get(name).new(app)
+      end
+
+      def controllers
+        @controllers ||= {}
+      end
+    end
+
     def initialize(app, action:, callback:)
       @app, @action, @callback = app, action, callback
     end
@@ -84,7 +94,7 @@ module Cannon
         @action.call(request, response)
       elsif @action.include? '#'
         controller, action = @action.split('#')
-        Object.const_get(controller).new(@app).send(action, request, response)
+        RouteAction.controller(controller, @app).send(action, request, response)
       else
         Cannon.logger.debug "Action: #{@action}"
         @app.app_binding.send(@action, request, response)
