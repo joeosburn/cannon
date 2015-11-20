@@ -1,15 +1,17 @@
 module Cannon
   class Route
-    attr_reader :path, :actions, :redirect
+    attr_reader :path, :actions, :redirect, :method
 
-    def initialize(app, path:, actions: nil, redirect: nil)
+    def initialize(app, method:, path:, actions: nil, redirect: nil)
       @path = build_path(path)
-      @app, @redirect = app, redirect
+      @method, @app, @redirect = method.to_s.upcase, app, redirect
       @actions = actions || []
       @route_action = build_route_action(@actions.dup)
     end
 
     def matches?(request)
+      return false unless request.method == method
+
       matches = self.path.match(request.path)
       if matches.nil?
         false

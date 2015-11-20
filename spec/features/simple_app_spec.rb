@@ -65,6 +65,10 @@ RSpec.describe 'Cannon app' do
       response.view('render_test.html', name: 'John Calvin')
     end
 
+    cannon_app.post('/hi') do |request, response|
+      response.send('created!', status: :created)
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -166,6 +170,12 @@ RSpec.describe 'Cannon app' do
     it 'does mustache based rendering' do
       get '/render'
       expect(response.body).to eq('Hello John Calvin')
+    end
+
+    it 'handles post requests' do
+      post '/hi'
+      expect(response.body).to eq('created!')
+      expect(response.code).to eq(201)
     end
   end
 end

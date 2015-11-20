@@ -23,7 +23,11 @@ module Cannon
     end
 
     def get(path, action: nil, actions: nil, redirect: nil, &block)
-      routes << Route.new(self, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+      routes << Route.new(self, method: :get, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+    end
+
+    def post(path, action: nil, actions: nil, redirect: nil, &block)
+      routes << Route.new(self, method: :post, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
     end
 
     def listen(port: config.port, ip_address: config.ip_address, async: false)
