@@ -19,12 +19,15 @@ module Cannon::Test
     @cannon_app ||= create_cannon_app
   end
 
-  def get(path)
-    request(path, request_class: Net::HTTP::Get)
+  def get(path, params = {})
+    uri = URI("http://127.0.0.1:#{PORT}#{path}")
+    uri.query = URI.encode_www_form(params)
+    @response = MockResponse.new(Net::HTTP.get_response(uri))
   end
 
-  def post(path)
-    request(path, request_class: Net::HTTP::Post)
+  def post(path, params = {})
+    uri = URI("http://127.0.0.1:#{PORT}#{path}")
+    @response = MockResponse.new(Net::HTTP.post_form(uri, params))
   end
 
   def response
@@ -37,15 +40,6 @@ private
     app = Cannon::App.new(binding, port: PORT, ip_address: '127.0.0.1')
     app.config.log_level = :error
     app
-  end
-
-  def request(path, request_class:)
-    path = "/#{path}" unless path =~ /^\//
-    uri = URI("http://127.0.0.1:#{PORT}#{path}")
-    @response = MockResponse.new(Net::HTTP.start(uri.host, uri.port) do |http|
-      request = request_class.new(uri.request_uri)
-      http.request(request)
-    end)
   end
 
 end
