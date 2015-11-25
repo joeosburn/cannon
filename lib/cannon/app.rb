@@ -1,4 +1,5 @@
 require 'mime/types'
+require 'pry'
 
 module Cannon
   class AlreadyListening < StandardError; end
@@ -31,9 +32,16 @@ module Cannon
     end
 
     def listen(port: config.port, ip_address: config.ip_address, async: false)
+      cannon_app = self
+
+      if ENV['CONSOLE']
+        command_set = Pry::CommandSet.new {}
+        Pry.start binding, commands: command_set
+        exit
+      end
+
       raise AlreadyListening, 'App is currently listening' unless @running_app.nil?
 
-      cannon_app = self
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << Cannon.root
