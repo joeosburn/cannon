@@ -69,6 +69,10 @@ RSpec.describe 'Cannon app' do
       response.send('created!', status: :created)
     end
 
+    cannon_app.post('/submit') do |request, response|
+      response.send("name=#{request.params[:name]}, age=#{request.params[:age]}")
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -176,6 +180,11 @@ RSpec.describe 'Cannon app' do
       post '/hi'
       expect(response.body).to eq('created!')
       expect(response.code).to eq(201)
+    end
+
+    it 'handles post params' do
+      post('/submit', name: 'John', age: 21)
+      expect(response.body).to eq('name=John, age=21')
     end
   end
 end
