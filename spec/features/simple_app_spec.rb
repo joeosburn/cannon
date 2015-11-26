@@ -73,6 +73,14 @@ RSpec.describe 'Cannon app' do
       response.send("name=#{request.params[:name]}, age=#{request.params[:age]}")
     end
 
+    cannon_app.patch('/update') do |request, response|
+      response.send("updated object #{request.params[:name]}")
+    end
+
+    cannon_app.put('/modify') do |request, response|
+      response.send("modified object #{request.params[:name]}")
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -108,7 +116,7 @@ RSpec.describe 'Cannon app' do
     end
 
     it 'handles query params' do
-      get '/value', place: 123, key: 'a value', place: '12 ave st'
+      get '/value', key: 'a value', place: '12 ave st'
       expect(response.body).to eq('key = a value, place = 12 ave st')
     end
 
@@ -185,6 +193,16 @@ RSpec.describe 'Cannon app' do
     it 'handles post params' do
       post('/submit', name: 'John', age: 21)
       expect(response.body).to eq('name=John, age=21')
+    end
+
+    it 'handles put requests' do
+      put '/modify', name: 'zebra'
+      expect(response.body).to eq('modified object zebra')
+    end
+
+    it 'handles patch requests' do
+      patch '/update', name: 'lion'
+      expect(response.body).to eq('updated object lion')
     end
   end
 end

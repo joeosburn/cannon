@@ -24,11 +24,19 @@ module Cannon
     end
 
     def get(path, action: nil, actions: nil, redirect: nil, &block)
-      routes << Route.new(self, method: :get, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+      add_route(path, method: :get, action: action, actions: actions, redirect: redirect, &block)
     end
 
     def post(path, action: nil, actions: nil, redirect: nil, &block)
-      routes << Route.new(self, method: :post, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+      add_route(path, method: :post, action: action, actions: actions, redirect: redirect, &block)
+    end
+
+    def put(path, action: nil, actions: nil, redirect: nil, &block)
+      add_route(path, method: :put, action: action, actions: actions, redirect: redirect, &block)
+    end
+
+    def patch(path, action: nil, actions: nil, redirect: nil, &block)
+      add_route(path, method: :patch, action: action, actions: actions, redirect: redirect, &block)
     end
 
     def listen(port: config.port, ip_address: config.ip_address, async: false)
@@ -94,6 +102,10 @@ module Cannon
     end
 
   private
+
+    def add_route(path, method:, action:, actions:, redirect:, &block)
+      routes << Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+    end
 
     def detect_env
       ENV['CANNON_ENV'] ? ENV['CANNON_ENV'].dup : 'development'
