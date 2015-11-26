@@ -26,8 +26,15 @@ module Cannon::Test
   end
 
   def post(path, params = {})
-    uri = URI("http://127.0.0.1:#{PORT}#{path}")
-    @response = MockResponse.new(Net::HTTP.post_form(uri, params))
+    post_request(path, Net::HTTP::Post, params)
+  end
+
+  def put(path, params = {})
+    post_request(path, Net::HTTP::Put, params)
+  end
+
+  def patch(path, params = {})
+    post_request(path, Net::HTTP::Patch, params)
   end
 
   def response
@@ -35,6 +42,15 @@ module Cannon::Test
   end
 
 private
+
+  def post_request(path, request_class, params)
+    uri = URI("http://127.0.0.1:#{PORT}#{path}")
+    req = request_class.new(uri)
+    req.set_form_data(params)
+    @response = MockResponse.new(Net::HTTP.start(uri.hostname, uri.port) do |http|
+      http.request(req)
+    end)
+  end
 
   def create_cannon_app
     app = Cannon::App.new(binding, port: PORT, ip_address: '127.0.0.1')
