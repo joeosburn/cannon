@@ -37,6 +37,10 @@ module Cannon::Test
     post_request(path, Net::HTTP::Patch, params)
   end
 
+  def delete(path, params = {})
+    post_request(path, Net::HTTP::Delete, params)
+  end
+
   def response
     @response
   end

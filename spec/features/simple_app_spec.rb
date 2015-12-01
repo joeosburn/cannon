@@ -81,6 +81,14 @@ RSpec.describe 'Cannon app' do
       response.send("modified object #{request.params[:name]}")
     end
 
+    cannon_app.get('/object/:id') do |request, response|
+      response.send("view #{request.params[:id]}")
+    end
+
+    cannon_app.delete('/object/:id') do |request, response|
+      response.send("deleted #{request.params[:id]}")
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -203,6 +211,11 @@ RSpec.describe 'Cannon app' do
     it 'handles patch requests' do
       patch '/update', name: 'lion'
       expect(response.body).to eq('updated object lion')
+    end
+
+    it 'handles delete requests' do
+      delete '/object/34'
+      expect(response.body).to eq('deleted 34')
     end
   end
 end

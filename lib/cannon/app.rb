@@ -23,20 +23,10 @@ module Cannon
       define_cannon_logger
     end
 
-    def get(path, action: nil, actions: nil, redirect: nil, &block)
-      add_route(path, method: :get, action: action, actions: actions, redirect: redirect, &block)
-    end
-
-    def post(path, action: nil, actions: nil, redirect: nil, &block)
-      add_route(path, method: :post, action: action, actions: actions, redirect: redirect, &block)
-    end
-
-    def put(path, action: nil, actions: nil, redirect: nil, &block)
-      add_route(path, method: :put, action: action, actions: actions, redirect: redirect, &block)
-    end
-
-    def patch(path, action: nil, actions: nil, redirect: nil, &block)
-      add_route(path, method: :patch, action: action, actions: actions, redirect: redirect, &block)
+    %w{get post put patch delete}.each do |http_method|
+      define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, &block|
+        add_route(path, method: http_method.to_sym, action: action, actions: actions, redirect: redirect, &block)
+      end
     end
 
     def listen(port: config.port, ip_address: config.ip_address, async: false)
