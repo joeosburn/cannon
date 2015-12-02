@@ -23,7 +23,7 @@ module Cannon
       define_cannon_logger
     end
 
-    %w{get post put patch delete}.each do |http_method|
+    %w{get post put patch delete head}.each do |http_method|
       define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, &block|
         add_route(path, method: http_method.to_sym, action: action, actions: actions, redirect: redirect, &block)
       end

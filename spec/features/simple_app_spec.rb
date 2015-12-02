@@ -89,6 +89,11 @@ RSpec.describe 'Cannon app' do
       response.send("deleted #{request.params[:id]}")
     end
 
+    cannon_app.head('/object/:id') do |request, response|
+      response.header('ETag', "object_#{request.params[:id]}")
+      response.send('head body should be ignored')
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -216,6 +221,18 @@ RSpec.describe 'Cannon app' do
     it 'handles delete requests' do
       delete '/object/34'
       expect(response.body).to eq('deleted 34')
+    end
+
+    describe 'head requests' do
+      it 'handles head request headers' do
+        head '/object/45'
+        expect(response.headers['ETag']).to eq('object_45')
+      end
+
+      it 'does not return a body' do
+        head '/object/45'
+        expect(response.body).to be_nil
+      end
     end
   end
 end

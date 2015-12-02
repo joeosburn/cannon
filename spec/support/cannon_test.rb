@@ -7,6 +7,10 @@ class MockResponse
     @response.code.to_i
   end
 
+  def headers
+    @response
+  end
+
   def method_missing(sym, *args, &block)
     @response.send(sym, *args, &block)
   end
@@ -39,6 +43,13 @@ module Cannon::Test
 
   def delete(path, params = {})
     post_request(path, Net::HTTP::Delete, params)
+  end
+
+  def head(path, params = {})
+    path = "#{path}?#{URI.encode_www_form(params)}" if params.count > 0
+    Net::HTTP.start('127.0.0.1', PORT) do |http|
+      @response = MockResponse.new(http.head(path))
+    end
   end
 
   def response
