@@ -7,7 +7,7 @@ module Cannon
         @signature = nil
       end
 
-      def run(request, response)
+      def run(request, response, next_proc)
         reload_cache if outdated_cache?
 
         if @public_path_array.include? request.path
@@ -16,7 +16,8 @@ module Cannon
           response.header('Content-Type', content_type)
           response.send(IO.binread(filepath))
           response.flush
-          false
+        else
+          next_proc.call
         end
       end
 

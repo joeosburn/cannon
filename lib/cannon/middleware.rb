@@ -13,14 +13,12 @@ module Cannon
     end
 
     def run(request, response)
-      result = @ware.run(request, response)
-
-      if result == false
-        self.fail
-      else
+      next_proc = -> do
         setup_callback
         self.succeed(request, response)
       end
+
+      result = @ware.run(request, response, next_proc)
     end
 
   private

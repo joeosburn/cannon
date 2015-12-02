@@ -4,8 +4,9 @@ module Cannon
       def initialize(app)
       end
 
-      def run(request, response)
+      def run(request, response, next_proc)
         Cannon.logger.info "#{request.method} #{request.path}"
+        next_proc.call
       end
     end
   end
