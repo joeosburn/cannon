@@ -1,22 +1,26 @@
 require 'spec_helper'
 
-def hi(request, response)
+def hi(request, response, next_proc)
   response.send('hi')
+  next_proc.call
 end
 
-def how(request, response)
+def how(request, response, next_proc)
   response.send(' how ')
+  next_proc.call
 end
 
-def are_you(request, response)
+def are_you(request, response, next_proc)
   response.send('are you?')
+  next_proc.call
 end
 
-def test_view(request, response)
+def test_view(request, response, next_proc)
   response.view('test.html')
+  next_proc.call
 end
 
-def raise_500(request, response)
+def raise_500(request, response, next_proc)
   bad_fail_code
 end
 
@@ -25,13 +29,15 @@ class World
     @count = 0
   end
 
-  def hello(request, response)
+  def hello(request, response, next_proc)
     response.send('Hello World!')
+    next_proc.call
   end
 
-  def count(request, response)
+  def count(request, response, next_proc)
     response.send("count = #{@count}")
     @count += 1
+    next_proc.call
   end
 end
 
@@ -46,52 +52,64 @@ RSpec.describe 'Cannon app' do
     cannon_app.get('/count', action: 'World#count')
     cannon_app.get('/view', action: 'test_view')
     cannon_app.get('/bad', action: 'raise_500')
-    cannon_app.get('/inline') do |request, response|
+    cannon_app.get('/inline') do |request, response, next_proc|
       response.send('inline action')
+      next_proc.call
     end
-    cannon_app.get('/value') do |request, response|
+    cannon_app.get('/value') do |request, response, next_proc|
       response.send("key = #{request.params[:key]}, place = #{request.params[:place]}")
+      next_proc.call
     end
 
-    cannon_app.get('/resource/:id') do |request, response|
+    cannon_app.get('/resource/:id') do |request, response, next_proc|
       response.send("id = #{request.params[:id]}")
+      next_proc.call
     end
 
-    cannon_app.get('/:type/by-grouping/:grouping') do |request, response|
+    cannon_app.get('/:type/by-grouping/:grouping') do |request, response, next_proc|
       response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
+      next_proc.call
     end
 
-    cannon_app.get('/render') do |request, response|
+    cannon_app.get('/render') do |request, response, next_proc|
       response.view('render_test.html', name: 'John Calvin')
+      next_proc.call
     end
 
-    cannon_app.post('/hi') do |request, response|
+    cannon_app.post('/hi') do |request, response, next_proc|
       response.send('created!', status: :created)
+      next_proc.call
     end
 
-    cannon_app.post('/submit') do |request, response|
+    cannon_app.post('/submit') do |request, response, next_proc|
       response.send("name=#{request.params[:name]}, age=#{request.params[:age]}")
+      next_proc.call
     end
 
-    cannon_app.patch('/update') do |request, response|
+    cannon_app.patch('/update') do |request, response, next_proc|
       response.send("updated object #{request.params[:name]}")
+      next_proc.call
     end
 
-    cannon_app.put('/modify') do |request, response|
+    cannon_app.put('/modify') do |request, response, next_proc|
       response.send("modified object #{request.params[:name]}")
+      next_proc.call
     end
 
-    cannon_app.get('/object/:id') do |request, response|
+    cannon_app.get('/object/:id') do |request, response, next_proc|
       response.send("view #{request.params[:id]}")
+      next_proc.call
     end
 
-    cannon_app.delete('/object/:id') do |request, response|
+    cannon_app.delete('/object/:id') do |request, response, next_proc|
       response.send("deleted #{request.params[:id]}")
+      next_proc.call
     end
 
-    cannon_app.head('/object/:id') do |request, response|
+    cannon_app.head('/object/:id') do |request, response, next_proc|
       response.header('ETag', "object_#{request.params[:id]}")
       response.send('head body should be ignored')
+      next_proc.call
     end
 
     cannon_app.listen(async: true)
