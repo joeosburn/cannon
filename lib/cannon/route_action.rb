@@ -16,23 +16,25 @@ class RouteAction
   end
 
   def run(request, response)
+    next_proc = -> do
+      if response.flushed?
+        fail
+      else
+        setup_callback
+        succeed(request, response)
+      end
+    end
+
     if @action.is_a? Proc
       Cannon.logger.debug 'Action: Inline'
-      @action.call(request, response)
+      @action.call(request, response, next_proc)
     elsif @action.include? '#'
       controller, action = @action.split('#')
       Cannon.logger.debug "Controller: #{controller}, Action: #{action}"
-      RouteAction.controller(controller, @app).send(action, request, response)
+      RouteAction.controller(controller, @app).send(action, request, response, next_proc)
     else
       Cannon.logger.debug "Action: #{@action}"
-      @app.app_binding.send(@action, request, response)
-    end
-
-    if response.flushed?
-      fail
-    else
-      setup_callback
-      succeed(request, response)
+      @app.app_binding.send(@action, request, response, next_proc)
     end
   end
 
