@@ -21,6 +21,7 @@ class RouteAction
       @action.call(request, response)
     elsif @action.include? '#'
       controller, action = @action.split('#')
+      Cannon.logger.debug "Controller: #{controller}, Action: #{action}"
       RouteAction.controller(controller, @app).send(action, request, response)
     else
       Cannon.logger.debug "Action: #{@action}"
