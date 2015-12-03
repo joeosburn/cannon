@@ -5,12 +5,13 @@ module Cannon
   class AlreadyListening < StandardError; end
 
   class App
-    attr_reader :routes, :app_binding
+    attr_reader :routes, :app_binding, :cache
 
     def initialize(app_binding, port: nil, ip_address: nil, &block)
       @app_binding = app_binding
       @routes = []
       @load_environment = block
+      @cache = {}
 
       config.port = port unless port.nil?
       config.ip_address = ip_address unless ip_address.nil?
@@ -21,6 +22,7 @@ module Cannon
       define_cannon_config
       define_cannon_configure_method
       define_cannon_logger
+      define_cannon_cache
     end
 
     %w{get post put patch delete head}.each do |http_method|
@@ -124,6 +126,10 @@ module Cannon
 
     def define_cannon_root
       cannon_method(:root, @app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
+    end
+
+    def define_cannon_cache
+      cannon_method(:cache, self.cache)
     end
 
     def define_cannon_logger
