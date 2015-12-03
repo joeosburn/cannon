@@ -57,7 +57,8 @@ module Cannon
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @flushed = false
       @headers = {}
-      @view_path = build_view_path
+
+      initialize_views
 
       self.status = :ok
     end
@@ -108,14 +109,11 @@ module Cannon
 
     def internal_server_error(title:, content:)
       html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
+      header('Content-Type', 'text/html')
       send(html, status: :internal_server_error)
     end
 
   private
-
-    def build_view_path
-      @app.config.view_path =~ /^\// ? @app.config.view_path : "#{Cannon.root}/#{@app.config.view_path}"
-    end
 
     def converted_status(status)
       if status.is_a?(Symbol)
