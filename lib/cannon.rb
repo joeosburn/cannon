@@ -2,6 +2,7 @@ require 'eventmachine'
 require 'evma_httpserver'
 require 'logger'
 
+require 'cannon/concerns/path_cache'
 require 'cannon/config'
 require 'cannon/views'
 require 'cannon/request'
