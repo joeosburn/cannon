@@ -57,7 +57,8 @@ module Cannon
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @flushed = false
       @headers = {}
-      @view_path = build_view_path
+
+      initialize_views
 
       self.status = :ok
     end
@@ -113,10 +114,6 @@ module Cannon
     end
 
   private
-
-    def build_view_path
-      @app.config.view_path =~ /^\// ? @app.config.view_path : "#{Cannon.root}/#{@app.config.view_path}"
-    end
 
     def converted_status(status)
       if status.is_a?(Symbol)
