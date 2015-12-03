@@ -108,6 +108,7 @@ module Cannon
 
     def internal_server_error(title:, content:)
       html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
+      header('Content-Type', 'text/html')
       send(html, status: :internal_server_error)
     end
 
