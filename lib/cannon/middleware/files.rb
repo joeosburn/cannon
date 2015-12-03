@@ -11,10 +11,9 @@ module Cannon
         reload_cache if outdated_cache?
 
         if @public_path_array.include? request.path
-          filepath = "#{@base_path}#{request.path}"
-          content_type = Cannon.mime_type(filepath)
+          file, content_type = *file_and_content_type("#{@base_path}#{request.path}")
           response.header('Content-Type', content_type)
-          response.send(IO.binread(filepath))
+          response.send(file)
           response.flush
         else
           next_proc.call
@@ -22,6 +21,18 @@ module Cannon
       end
 
     private
+
+      def file_and_content_type(filepath)
+        if @app.cache[:files].include?(filepath)
+          @app.cache[:files][filepath]
+        else
+          @app.cache[:files][filepath] = read_file_and_content_type(filepath)
+        end
+      end
+
+      def read_file_and_content_type(filepath)
+        [IO.binread(filepath), Cannon.mime_type(filepath)]
+      end
 
       def build_base_path
         @app.config.public_path =~ /^\// ? @app.config.public_path : "#{Cannon.root}/#{@app.config.public_path}"
@@ -36,7 +47,9 @@ module Cannon
       end
 
       def reload_cache
+        @signature = public_path_signature
         @public_path_array = build_public_path_array
+        @app.cache[:files] = {}
       end
 
       def public_path_signature
