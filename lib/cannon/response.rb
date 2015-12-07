@@ -57,6 +57,7 @@ module Cannon
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @flushed = false
       @headers = {}
+      @cookies = {}
 
       initialize_views
 
@@ -72,12 +73,12 @@ module Cannon
       self.status = status
       delegated_response.status = converted_status(status)
       delegated_response.content += content
-      delegated_response.headers = self.headers
     end
 
     def flush
       unless flushed?
-        send('')
+        set_cookie_headers
+        delegated_response.headers = self.headers
         delegated_response.send_response
         @flushed = true
       end
@@ -113,7 +114,28 @@ module Cannon
       send(html, status: :internal_server_error)
     end
 
+    def cookie(cookie, value:, expires: nil, httponly: nil)
+      cookie_options = {:value => value}
+      cookie_options[:expires] = expires unless expires.nil?
+      cookie_options[:httponly] = httponly unless httponly.nil?
+      @cookies[cookie] = cookie_options
+    end
+
   private
+
+    def set_cookie_headers
+      cookie_headers = (headers['Set-Cookie'] = [])
+      @cookies.each do |cookie, cookie_options|
+        cookie_headers << build_cookie_value(cookie, cookie_options)
+      end
+    end
+
+    def build_cookie_value(name, options)
+      cookie = "#{name}=#{escape_cookie_value(options[:value])}"
+      cookie << "; Expires=#{options[:expires].httpdate}" if options.include?(:expires)
+      cookie << '; HttpOnly' if options[:httponly] == true
+      cookie
+    end
 
     def converted_status(status)
       if status.is_a?(Symbol)
@@ -123,6 +145,11 @@ module Cannon
       else
         status.to_s
       end
+    end
+
+    def escape_cookie_value(value)
+      return value unless value.match(/([\x00-\x20\x7F",;\\])/)
+      "\"#{value.gsub(/([\\"])/, "\\\\\\1")}\""
     end
   end
 end
