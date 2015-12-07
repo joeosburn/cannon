@@ -1,3 +1,9 @@
+require 'http-cookie'
+
+RSpec.configure do |config|
+  config.after(:each) { jar.clear }
+end
+
 class MockResponse
   def initialize(response)
     @response = response
@@ -24,47 +30,68 @@ module Cannon::Test
   end
 
   def get(path, params = {})
-    uri = URI("http://127.0.0.1:#{PORT}#{path}")
-    uri.query = URI.encode_www_form(params)
-    @response = MockResponse.new(Net::HTTP.get_response(uri))
+    http_request(path, Net::HTTP::Get, query_params: params)
   end
 
   def post(path, params = {})
-    post_request(path, Net::HTTP::Post, params)
+    http_request(path, Net::HTTP::Post, post_params: params)
   end
 
   def put(path, params = {})
-    post_request(path, Net::HTTP::Put, params)
+    http_request(path, Net::HTTP::Put, post_params: params)
   end
 
   def patch(path, params = {})
-    post_request(path, Net::HTTP::Patch, params)
+    http_request(path, Net::HTTP::Patch, post_params: params)
   end
 
   def delete(path, params = {})
-    post_request(path, Net::HTTP::Delete, params)
+    http_request(path, Net::HTTP::Delete, post_params: params)
   end
 
   def head(path, params = {})
-    path = "#{path}?#{URI.encode_www_form(params)}" if params.count > 0
-    Net::HTTP.start('127.0.0.1', PORT) do |http|
-      @response = MockResponse.new(http.head(path))
-    end
+    http_request(path, Net::HTTP::Head, query_params: params)
   end
 
   def response
     @response
   end
 
+  def cookies
+    jar.inject({}) { |cookies, cookie| cookies[cookie.name.to_sym] = cookie_to_options(cookie); cookies }
+  end
+
+  def jar
+    @jar ||= HTTP::CookieJar.new
+  end
+
 private
 
-  def post_request(path, request_class, params)
+  def cookie_to_options(cookie)
+    {value: cookie.value,
+     domain: cookie.domain,
+     httponly: cookie.httponly,
+     expires: cookie.expires,
+     max_age: cookie.max_age,
+     path: cookie.path}
+  end
+
+  def http_request(path, request_class, post_params: nil, query_params: nil)
     uri = URI("http://127.0.0.1:#{PORT}#{path}")
+    uri.query = URI.encode_www_form(query_params) unless query_params.nil?
     req = request_class.new(uri)
-    req.set_form_data(params)
+    req.set_form_data(post_params) unless post_params.nil?
+    req['Cookie'] = HTTP::Cookie.cookie_value(jar.cookies(uri)) unless jar.empty?
+
     @response = MockResponse.new(Net::HTTP.start(uri.hostname, uri.port) do |http|
       http.request(req)
     end)
+
+    if @response['Set-Cookie']
+      @response.get_fields('Set-Cookie').each do |cookie|
+        jar.parse(cookie, uri)
+      end
+    end
   end
 
   def create_cannon_app

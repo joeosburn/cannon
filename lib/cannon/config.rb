@@ -5,7 +5,7 @@ module Cannon
     attr_accessor :middleware, :public_path, :view_path, :reload_on_request, :benchmark_requests, :port, :ip_address
     attr_reader :logger, :log_level
 
-    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Router ContentType}
+    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Cookies Router ContentType}
 
     LOG_LEVELS = {
       unknown: Logger::UNKNOWN,
