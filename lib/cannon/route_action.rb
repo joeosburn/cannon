@@ -26,19 +26,51 @@ class RouteAction
     end
 
     if @action.is_a? Proc
-      Cannon.logger.debug 'Action: Inline'
-      @action.call(request, response, next_proc)
+      run_inline_action(request, response, next_proc)
     elsif @action.include? '#'
-      controller, action = @action.split('#')
-      Cannon.logger.debug "Controller: #{controller}, Action: #{action}"
-      RouteAction.controller(controller, @app).send(action, request, response, next_proc)
+      run_controller_action(request, response, next_proc)
     else
-      Cannon.logger.debug "Action: #{@action}"
-      @app.app_binding.send(@action, request, response, next_proc)
+      run_bound_action(request, response, next_proc)
     end
   end
 
 private
+
+  def run_inline_action(request, response, next_proc)
+    Cannon.logger.debug 'Action: Inline'
+
+    if @action.arity == 2
+      @action.call(request, response)
+      next_proc.call
+    else
+      @action.call(request, response, next_proc)
+    end
+  end
+
+  def run_controller_action(request, response, next_proc)
+    controller, action = @action.split('#')
+
+    Cannon.logger.debug "Controller: #{controller}, Action: #{action}"
+
+    controller_instance = RouteAction.controller(controller, @app)
+    if controller_instance.method(action).arity == 2
+      controller_instance.send(action, request, response)
+      next_proc.call
+    else
+      controller_instance.send(action, request, response, next_proc)
+    end
+  end
+
+  def run_bound_action(request, response, next_proc)
+    Cannon.logger.debug "Action: #{@action}"
+
+    if @app.app_binding.method(@action).arity == 2
+      @app.app_binding.send(@action, request, response)
+      next_proc.call
+    else
+      @app.app_binding.send(@action, request, response, next_proc)
+    end
+  end
 
   def setup_callback
     set_deferred_status nil
