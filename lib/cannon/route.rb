@@ -10,7 +10,7 @@ module Cannon
     end
 
     def matches?(request)
-      return false unless request.method == method
+      return false unless method == 'ALL' || request.method == method
 
       matches = self.path.match(request.path)
       if matches.nil?

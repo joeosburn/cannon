@@ -120,6 +120,11 @@ RSpec.describe 'Cannon app' do
       next_proc.call
     end
 
+    cannon_app.all('/any') do |request, response, next_proc|
+      response.send("request method = #{request.method}")
+      next_proc.call
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -274,6 +279,17 @@ RSpec.describe 'Cannon app' do
 
       get '/cookies'
       expect(response.body).to eq('username = "Luther;Martin", password = by=faith, remember_me = true')
+    end
+
+    it 'can be configured to handle all methods for routes' do
+      get '/any'
+      expect(response.body).to eq('request method = GET')
+
+      post '/any'
+      expect(response.body).to eq('request method = POST')
+
+      put '/any'
+      expect(response.body).to eq('request method = PUT')
     end
   end
 end
