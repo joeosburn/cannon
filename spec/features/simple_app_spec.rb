@@ -20,6 +20,20 @@ def raise_500(request, response)
   bad_fail_code
 end
 
+def first(request, response, next_proc)
+  EM.defer(
+    -> { sleep 0.1 },
+    ->(result) do
+      response.send('first')
+      next_proc.call
+    end
+  )
+end
+
+def second(request, response)
+  response.send(' second')
+end
+
 class World
   def initialize(app)
     @count = 0
@@ -40,6 +54,7 @@ RSpec.describe 'Cannon app' do
     cannon_app.config.view_path = '../fixtures/views'
     cannon_app.config.public_path = '../fixtures/public'
 
+    cannon_app.get('/1-2', actions: ['first', 'second'])
     cannon_app.get('/hi', action: 'hi')
     cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])
     cannon_app.get('/hello', action: 'World#hello')
@@ -270,6 +285,11 @@ RSpec.describe 'Cannon app' do
 
       put '/any'
       expect(response.body).to eq('request method = PUT')
+    end
+
+    it 'can handle next_proc calls for deferred processing' do
+      get '/1-2'
+      expect(response.body).to eq('first second')
     end
   end
 end

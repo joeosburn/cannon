@@ -15,13 +15,14 @@ class RouteAction
     @app, @action, @callback = app, action, callback
   end
 
-  def run(request, response)
+  def run(request, response, finish_proc)
     next_proc = -> do
       if response.flushed?
         fail
+        finish_proc.call
       else
         setup_callback
-        succeed(request, response)
+        succeed(request, response, finish_proc)
       end
     end
 
@@ -74,8 +75,12 @@ private
 
   def setup_callback
     set_deferred_status nil
-    callback do |request, response|
-      @callback.run(request, response) unless @callback.nil?
+    callback do |request, response, finish_proc|
+      if @callback.nil?
+        finish_proc.call
+      else
+        @callback.run(request, response, finish_proc)
+      end
     end
   end
 end

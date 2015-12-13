@@ -21,16 +21,17 @@ module Cannon
       end
     end
 
-    def handle(request, response)
+    def handle(request, response, finish_proc)
       if redirect
         response.permanent_redirect(redirect)
       elsif @route_action
         begin
-          @route_action.run(request, response)
+          @route_action.run(request, response, finish_proc)
         rescue => error
           Cannon.logger.error error.message
           Cannon.logger.error error.backtrace.join("\n")
           response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+          finish_proc.call
         end
       end
     end

@@ -7,8 +7,12 @@ module Cannon
 
       def run(request, response, next_proc)
         matched_route = @app.routes.find { |route| route.matches? request }
-        matched_route.nil? ? response.not_found : matched_route.handle(request, response)
-        next_proc.call
+        if matched_route.nil?
+          response.not_found
+          next_proc.call
+        else
+          matched_route.handle(request, response, next_proc)
+        end
       end
     end
   end
