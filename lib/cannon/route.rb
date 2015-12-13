@@ -9,6 +9,10 @@ module Cannon
       @route_action = build_route_action(@actions.dup)
     end
 
+    def add_route_action(action)
+      @route_action.last_action.callback = RouteAction.new(@app, action: action, callback: nil)
+    end
+
     def matches?(request)
       return false unless method == 'ALL' || request.method == method
 

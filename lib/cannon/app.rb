@@ -96,7 +96,9 @@ module Cannon
   private
 
     def add_route(path, method:, action:, actions:, redirect:, &block)
-      routes << Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+      route = Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+      routes << route
+      extra_router(route)
     end
 
     def detect_env
@@ -146,6 +148,22 @@ module Cannon
     def cannon_method(name, value)
       Cannon.send(:define_method, name.to_sym, -> { value })
       Cannon.send(:module_function, name.to_sym)
+    end
+
+    def extra_router(route)
+      ExtraRouter.new(self, route)
+    end
+
+    class ExtraRouter
+      def initialize(app, route)
+        @app = app
+        @route = route
+      end
+
+      def handle(&block)
+        @route.add_route_action(block)
+        self
+      end
     end
   end
 end

@@ -11,8 +11,14 @@ class RouteAction
     end
   end
 
+  attr_writer :callback
+
   def initialize(app, action:, callback:)
     @app, @action, @callback = app, action, callback
+  end
+
+  def last_action
+    @callback.nil? ? self : @callback.last_action
   end
 
   def run(request, response, finish_proc)

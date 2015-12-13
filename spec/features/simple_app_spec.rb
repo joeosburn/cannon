@@ -120,6 +120,14 @@ RSpec.describe 'Cannon app' do
       response.send("request method = #{request.method}")
     end
 
+    cannon_app.get('/chained') do |request, response|
+      response.send('first')
+    end.handle do |request, response|
+      response.send(' second')
+    end.handle do |request, response|
+      response.send(' third')
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -290,6 +298,11 @@ RSpec.describe 'Cannon app' do
     it 'can handle next_proc calls for deferred processing' do
       get '/1-2'
       expect(response.body).to eq('first second')
+    end
+
+    it 'can handle chained inline actions' do
+      get '/chained'
+      expect(response.body).to eq('first second third')
     end
   end
 end
