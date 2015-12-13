@@ -4,10 +4,15 @@ module Cannon
 
     class << self
       def middleware_runner
-        @middleware_runner ||= build_middleware_runner(app.config.middleware.dup)
+        @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
       end
 
     private
+
+      def prepared_middleware_stack
+        stack = app.config.middleware.dup
+        stack << 'FlushAndBenchmark'
+      end
 
       def build_middleware_runner(middleware, callback: nil)
         return callback if middleware.size < 1
@@ -28,20 +33,10 @@ module Cannon
 
       app.reload_environment if app.config.reload_on_request
 
-      EM.defer(
-        -> { self.class.middleware_runner.run(request, response) if middleware? },
-        ->(result) do
-          response.flush unless response.flushed?
-          Cannon.logger.info "Response took #{time_ago_in_ms(request.start_time)}ms" if app.config.benchmark_requests
-        end
-      )
+      self.class.middleware_runner.run(request, response) if middleware?
     end
 
   private
-
-    def time_ago_in_ms(time_ago)
-      Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
-    end
 
     def middleware?
       app.config.middleware.size > 0
