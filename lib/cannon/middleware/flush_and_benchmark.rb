@@ -7,7 +7,7 @@ module Cannon
 
       def run(request, response, next_proc)
         response.flush unless response.flushed?
-        Cannon.logger.info "Response took #{time_ago_in_ms(request.start_time)}ms" if @app.config.benchmark_requests
+        Cannon.logger.debug "Response took #{time_ago_in_ms(request.start_time)}ms" if @app.config.benchmark_requests
       end
 
     private
