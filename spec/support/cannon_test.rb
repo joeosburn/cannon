@@ -1,9 +1,5 @@
 require 'http-cookie'
 
-RSpec.configure do |config|
-  config.after(:each) { jar.clear }
-end
-
 class MockResponse
   def initialize(response)
     @response = response
@@ -99,9 +95,14 @@ private
     app.config.log_level = :error
     app
   end
-
 end
 
-RSpec.configure do |c|
-  c.include Cannon::Test
+RSpec.configure do |config|
+  config.include Cannon::Test
+
+  config.append_after(:context, cannon_app: true) do
+    cannon_app.stop
+    @cannon_app = nil
+    jar.clear
+  end
 end

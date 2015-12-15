@@ -40,7 +40,7 @@ module Cannon
         exit
       end
 
-      raise AlreadyListening, 'App is currently listening' unless @running_app.nil?
+      raise AlreadyListening, 'App is currently listening' unless @server_thread.nil?
 
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
@@ -49,8 +49,8 @@ module Cannon
 
       server_block = ->(notifier) do
         EventMachine::run {
-          EventMachine::start_server(ip_address, port, Cannon::Handler)
-          notifier << true unless notifier.nil? # notify the calling thread that the server started if async
+          server = EventMachine::start_server(ip_address, port, Cannon::Handler)
+          notifier << server unless notifier.nil? # notify the calling thread that the server started if async
           Cannon.logger.info "Cannon listening on port #{port}..."
         }
       end
@@ -58,7 +58,7 @@ module Cannon
       if async
         notification = Queue.new
         Thread.abort_on_exception = true
-        @running_app = Thread.new { server_block.call(notification) }
+        @server_thread = Thread.new { server_block.call(notification) }
         notification.pop
       else
         server_block.call(nil)
@@ -66,12 +66,13 @@ module Cannon
     end
 
     def stop
-      return if @running_app.nil?
+      return if @server_thread.nil?
       EventMachine::stop_event_loop
-      @running_app.join(10)
-      @running_app.kill unless @running_app.stop?
+      @server_thread.join(10)
+      @server_thread.kill unless @server_thread.stop?
       Thread.abort_on_exception = false
-      @running_app = nil
+      @server_thread = nil
+      Cannon.logger.info "Cannon no longer listening"
     end
 
     def reload_environment
@@ -93,7 +94,23 @@ module Cannon
       @env ||= detect_env
     end
 
+    def middleware_runner
+      @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
+    end
+
   private
+
+    def prepared_middleware_stack
+      stack = config.middleware.dup
+      stack << 'FlushAndBenchmark'
+    end
+
+    def build_middleware_runner(middleware, callback: nil)
+      return callback if middleware.size < 1
+
+      middleware_runner = MiddlewareRunner.new(middleware.pop, callback: callback, app: self)
+      build_middleware_runner(middleware, callback: middleware_runner)
+    end
 
     def add_route(path, method:, action:, actions:, redirect:, &block)
       route = Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)

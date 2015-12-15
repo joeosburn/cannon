@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe Cannon::App do
+RSpec.describe Cannon::App, :cannon_app do
   context 'app is listening asynchronously' do
     before(:each) { cannon_app.listen(port: 3030, async: true) }
     after(:each) { cannon_app.stop }
