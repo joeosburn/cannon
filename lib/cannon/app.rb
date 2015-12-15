@@ -94,7 +94,23 @@ module Cannon
       @env ||= detect_env
     end
 
+    def middleware_runner
+      @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
+    end
+
   private
+
+    def prepared_middleware_stack
+      stack = config.middleware.dup
+      stack << 'FlushAndBenchmark'
+    end
+
+    def build_middleware_runner(middleware, callback: nil)
+      return callback if middleware.size < 1
+
+      middleware_runner = MiddlewareRunner.new(middleware.pop, callback: callback, app: self)
+      build_middleware_runner(middleware, callback: middleware_runner)
+    end
 
     def add_route(path, method:, action:, actions:, redirect:, &block)
       route = Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
