@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe 'Cannon environment' do
+RSpec.describe 'Cannon environment', :cannon_app do
   context 'no environment specified' do
     before(:each) { ENV['CANNON_ENV'] = nil }
 
