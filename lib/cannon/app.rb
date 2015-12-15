@@ -49,8 +49,8 @@ module Cannon
 
       server_block = ->(notifier) do
         EventMachine::run {
-          EventMachine::start_server(ip_address, port, Cannon::Handler)
-          notifier << true unless notifier.nil? # notify the calling thread that the server started if async
+          server = EventMachine::start_server(ip_address, port, Cannon::Handler)
+          notifier << server unless notifier.nil? # notify the calling thread that the server started if async
           Cannon.logger.info "Cannon listening on port #{port}..."
         }
       end
