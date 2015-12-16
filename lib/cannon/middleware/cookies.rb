@@ -1,3 +1,5 @@
+require 'msgpack'
+
 module Cannon
   module Middleware
     class Cookies
@@ -54,7 +56,7 @@ module Cannon
                 pos = read_whitespace.call(request.http_cookie, pos)
                 name, pos = read_cookie_name.call(request.http_cookie, pos)
                 value, pos = read_cookie_value.call(request.http_cookie, pos)
-                cookies[name.to_sym] = value
+                cookies[name.to_sym] = MessagePack.unpack(value)['value']
               end
             rescue EndOfString
             end unless request.http_cookie.nil?

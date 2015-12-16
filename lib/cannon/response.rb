@@ -1,3 +1,5 @@
+require 'msgpack'
+
 module Cannon
   class Response
     extend Forwardable
@@ -131,7 +133,7 @@ module Cannon
     end
 
     def build_cookie_value(name, options)
-      cookie = "#{name}=#{escape_cookie_value(options[:value])}"
+      cookie = "#{name}=#{cookie_value(options[:value])}"
       cookie << "; Expires=#{options[:expires].httpdate}" if options.include?(:expires)
       cookie << '; HttpOnly' if options[:httponly] == true
       cookie
@@ -145,6 +147,10 @@ module Cannon
       else
         status.to_s
       end
+    end
+
+    def cookie_value(value)
+      escape_cookie_value({'value' => value}.to_msgpack)
     end
 
     def escape_cookie_value(value)
