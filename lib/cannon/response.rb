@@ -1,7 +1,10 @@
+require 'msgpack'
+
 module Cannon
   class Response
     extend Forwardable
     include Views
+    include Signature
 
     attr_reader :delegated_response, :headers
     attr_accessor :status
@@ -114,10 +117,11 @@ module Cannon
       send(html, status: :internal_server_error)
     end
 
-    def cookie(cookie, value:, expires: nil, httponly: nil)
+    def cookie(cookie, value:, expires: nil, httponly: nil, signed: false)
       cookie_options = {:value => value}
       cookie_options[:expires] = expires unless expires.nil?
       cookie_options[:httponly] = httponly unless httponly.nil?
+      cookie_options[:signed] = signed
       @cookies[cookie] = cookie_options
     end
 
@@ -131,7 +135,7 @@ module Cannon
     end
 
     def build_cookie_value(name, options)
-      cookie = "#{name}=#{escape_cookie_value(options[:value])}"
+      cookie = "#{name}=#{cookie_value(options[:value], signed: options[:signed])}"
       cookie << "; Expires=#{options[:expires].httpdate}" if options.include?(:expires)
       cookie << '; HttpOnly' if options[:httponly] == true
       cookie
@@ -145,6 +149,12 @@ module Cannon
       else
         status.to_s
       end
+    end
+
+    def cookie_value(value, signed:)
+      cookie_hash = {'value' => value}
+      cookie_hash['signature'] = signature(value) if signed
+      escape_cookie_value(cookie_hash.to_msgpack)
     end
 
     def escape_cookie_value(value)
