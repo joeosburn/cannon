@@ -3,6 +3,7 @@ require 'evma_httpserver'
 require 'logger'
 
 require 'cannon/concerns/path_cache'
+require 'cannon/concerns/signature'
 require 'cannon/config'
 require 'cannon/views'
 require 'cannon/request'
