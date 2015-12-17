@@ -54,7 +54,7 @@ module Cannon::Test
   end
 
   def cookies
-    jar.inject({}) { |cookies, cookie| cookies[cookie.name.to_sym] = cookie_to_options(cookie); cookies }
+    jar.inject({}) { |cookies, cookie| cookies[cookie.name.to_sym] = cookie; cookies }
   end
 
   def jar
@@ -62,15 +62,6 @@ module Cannon::Test
   end
 
 private
-
-  def cookie_to_options(cookie)
-    {value: cookie.value,
-     domain: cookie.domain,
-     httponly: cookie.httponly,
-     expires: cookie.expires,
-     max_age: cookie.max_age,
-     path: cookie.path}
-  end
 
   def http_request(path, request_class, post_params: nil, query_params: nil)
     uri = URI("http://127.0.0.1:#{PORT}#{path}")

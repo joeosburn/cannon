@@ -16,9 +16,9 @@ RSpec.describe 'Cookies', :cannon_app do
     get '/cookies'
     expect(response.body).to eq('username = , password = , remember_me = ')
 
-    expect(cookies[:username][:httponly]).to be true
-    expect(cookies[:username][:expires]).to eq(Time.new(2017, 10, 31, 10, 30, 05))
-    expect(cookies[:password][:expires]).to be nil
+    expect(cookies[:username].httponly).to be true
+    expect(cookies[:username].expires).to eq(Time.new(2017, 10, 31, 10, 30, 05))
+    expect(cookies[:password].expires).to be nil
 
     get '/cookies'
     expect(response.body).to eq('username = "Luther;Martin", password = by=faith, remember_me = true')
