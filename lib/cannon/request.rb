@@ -1,7 +1,7 @@
 require 'cgi'
 
 module Cannon
-    class Request
+  class Request
     attr_accessor :protocol, :method, :http_cookie, :content_type, :path, :uri, :query_string, :post_content, :headers,
                   :start_time
 
