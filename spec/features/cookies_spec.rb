@@ -2,6 +2,11 @@ require 'spec_helper'
 
 RSpec.describe 'Cookies', :cannon_app do
   before(:all) do
+    cannon_app.get('/basic') do |request, response|
+      response.cookie(:simple, value: 'value')
+      response.send("cookie = #{request.cookies[:simple]}")
+    end
+
     cannon_app.get('/cookies') do |request, response|
       response.cookie(:remember_me, value: 'true')
       response.cookie(:username, value: '"Luther;Martin"', expires: Time.new(2017, 10, 31, 10, 30, 05), httponly: true)
@@ -12,7 +17,15 @@ RSpec.describe 'Cookies', :cannon_app do
     cannon_app.listen(async: true)
   end
 
-  it 'handles cookies' do
+  it 'reads and writes cookies' do
+    get '/basic'
+    expect(response.body).to eq('cookie = ')
+
+    get '/basic'
+    expect(response.body).to eq('cookie = value')
+  end
+
+  it 'handles cookie options' do
     get '/cookies'
     expect(response.body).to eq('username = , password = , remember_me = ')
 
