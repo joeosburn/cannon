@@ -42,5 +42,17 @@ module Cannon
       @log_level = value
       logger.level = LOG_LEVELS[value.to_sym]
     end
+
+    def cookies
+      @cookies ||= Cookies.new
+    end
+
+    class Cookies
+      attr_accessor :secret
+
+      def initialize
+        self.secret = nil
+      end
+    end
   end
 end

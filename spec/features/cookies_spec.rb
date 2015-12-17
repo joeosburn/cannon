@@ -14,6 +14,11 @@ RSpec.describe 'Cookies', :cannon_app do
       response.send("username = #{request.cookies[:username]}, password = #{request.cookies[:password]}, remember_me = #{request.cookies[:remember_me]}")
     end
 
+    cannon_app.get('/signed') do |request, response|
+      response.cookie(:secure_value, value: 'SECURE', signed: true)
+      response.send("secure value = #{request.cookies.signed[:secure_value]}")
+    end
+
     cannon_app.listen(async: true)
   end
 
@@ -35,5 +40,23 @@ RSpec.describe 'Cookies', :cannon_app do
 
     get '/cookies'
     expect(response.body).to eq('username = "Luther;Martin", password = by=faith, remember_me = true')
+  end
+
+  describe 'signed' do
+    before(:each) do
+      get '/signed'
+      expect(response.body).to eq('secure value = ')
+    end
+
+    it 'will work if the cookie is not tampered' do
+      get '/signed'
+      expect(response.body).to eq('secure value = SECURE')
+    end
+
+    it 'will clear the cookie if the cookie is tampered' do
+      cookies[:secure_value].value.gsub!('SECURE', 'SeCURE')
+      get '/signed'
+      expect(response.body).to eq('secure value = ')
+    end
   end
 end
