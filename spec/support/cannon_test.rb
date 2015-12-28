@@ -10,11 +10,19 @@ class MockResponse
   end
 
   def headers
-    @response
+    @headers ||= build_headers
   end
 
   def method_missing(sym, *args, &block)
     @response.send(sym, *args, &block)
+  end
+
+private
+
+  def build_headers
+    headers = {}
+    each_header { |k, v| headers[k] = v }
+    headers
   end
 end
 

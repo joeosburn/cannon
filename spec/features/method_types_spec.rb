@@ -82,7 +82,7 @@ RSpec.describe 'Method types', :cannon_app do
   describe 'head requests' do
     it 'handles head request headers' do
       head '/object/45'
-      expect(response.headers['ETag']).to eq('object_45')
+      expect(response.headers['etag']).to eq('object_45')
     end
 
     it 'does not return a body' do
