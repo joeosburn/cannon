@@ -10,10 +10,6 @@ module Cannon
       @http_cookie = http_cookie
       @cookies = cookies
       @signed = signed
-
-      self.define_singleton_method(:signed) do
-        @signed_cookies ||= CookieJar.new(cookies: cookies_with_signatures, signed: true)
-      end if !@signed
     end
 
     def [](cookie_name)
@@ -25,7 +21,15 @@ module Cannon
       end
     end
 
+    def with_signatures
+      cookies.select { |k, v| v.include? 'signature' }
+    end
+
   private
+
+    def cookies
+      @cookies ||= parse_cookies
+    end
 
     def verified_signature(name, cookie)
       return cookie['value'] if cookie['verified']
@@ -37,14 +41,6 @@ module Cannon
         cookies.delete(name)
         nil
       end
-    end
-
-    def cookies_with_signatures
-      cookies.select { |k, v| v.include? 'signature' }
-    end
-
-    def cookies
-      @cookies ||= parse_cookies
     end
 
     def parse_cookies

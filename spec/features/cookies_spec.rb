@@ -16,7 +16,7 @@ RSpec.describe 'Cookies', :cannon_app do
 
     cannon_app.get('/signed') do |request, response|
       response.cookie(:secure_value, value: 'SECURE', signed: true)
-      response.send("secure value = #{request.cookies.signed[:secure_value]}")
+      response.send("secure value = #{request.signed_cookies[:secure_value]}")
     end
 
     cannon_app.listen(async: true)
