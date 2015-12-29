@@ -62,7 +62,7 @@ module Cannon::Test
   end
 
   def cookies
-    jar.inject({}) { |cookies, cookie| cookies[cookie.name.to_sym] = cookie; cookies }
+    jar.inject({}) { |cookies, cookie| cookies[cookie.name] = cookie; cookies }
   end
 
   def jar

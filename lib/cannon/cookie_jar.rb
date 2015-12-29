@@ -87,7 +87,7 @@ module Cannon
           name, pos = read_cookie_name(@http_cookie, pos)
           value, pos = read_cookie_value(@http_cookie, pos)
           begin
-            cookies[name.to_sym] = MessagePack.unpack(value)
+            cookies[name] = MessagePack.unpack(value)
           rescue StandardError; end
         end
       rescue EndOfString
