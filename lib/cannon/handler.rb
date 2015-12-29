@@ -3,21 +3,23 @@ module Cannon
     include EventMachine::HttpServer
 
     def app
+      # magically defined by Cannon::App
       self.class.app
     end
 
     def process_http_request
-      request = HttpRequest.new(self)
-      response = HttpResponse.new(self)
+      request = Request.new(self, app)
+      response = Response.new(self, app)
 
-      matched_route = app.routes.find { |route| route.matches? request.path }
+      app.reload_environment if app.config.reload_on_request
 
-      if matched_route.nil?
-        response.not_found
-      else
-        puts "GET #{matched_route.path}"
-        EM.defer(matched_route.function_block(app, request, response), ->(result) { response.send })
-      end
+      app.middleware_runner.run(request, response) if middleware?
+    end
+
+  private
+
+    def middleware?
+      app.config.middleware.size > 0
     end
   end
 end

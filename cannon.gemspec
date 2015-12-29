@@ -27,7 +27,12 @@ Gem::Specification.new do |spec|
   spec.test_files = Dir['spec/**/*']
 
   spec.add_dependency 'eventmachine', '~> 1.0.8'
-  spec.add_dependency 'eventmachine_httpserver', '~> 0.2.1'
+  spec.add_dependency 'eventmachine_httpserver'
+  spec.add_dependency 'mime-types', '~> 2.6.2'
+  spec.add_dependency 'mustache', '~> 1.0.2'
+  spec.add_dependency 'pry', '~> 0.10.3'
+  spec.add_dependency 'msgpack', '~> 0.7.1'
 
-  spec.add_development_dependency 'bundler', '~> 1.10'
+  spec.add_development_dependency 'rspec', '~> 3.3.0'
+  spec.add_development_dependency 'http-cookie', '~> 1.0.2'
 end
