@@ -10,13 +10,36 @@ module Cannon
       @http_cookie = http_cookie
       @cookies = cookies
       @signed = signed
-
-      self.define_singleton_method(:signed) do
-        @signed_cookies ||= CookieJar.new(cookies: cookies_with_signatures, signed: true)
-      end if !@signed
+      @assigned_cookies = {}
     end
 
     def [](cookie_name)
+      get_assigned_cookie(cookie_name) || get_cookie(cookie_name)
+    end
+
+    def []=(cookie, value)
+      if value.is_a?(Hash)
+        assign_cookie(cookie, value)
+      else
+        assign_cookie(cookie, {value: value})
+      end
+    end
+
+    def with_signatures
+      cookies.select { |k, v| v.include? 'signature' }
+    end
+
+    def assigned_cookie_values
+      @assigned_cookies.map { |k, v| build_cookie_value(k, v) }
+    end
+
+  private
+
+    def get_assigned_cookie(cookie_name)
+      @assigned_cookies.dig(cookie_name, :value)
+    end
+
+    def get_cookie(cookie_name)
       cookie = cookies[cookie_name]
       if cookie
         @signed ? verified_signature(cookie_name, cookie) : cookie['value']
@@ -25,7 +48,21 @@ module Cannon
       end
     end
 
-  private
+    def assign_cookie(cookie, cookie_options)
+      cookie_options[:signed] = @signed
+      @assigned_cookies[cookie] = cookie_options
+    end
+
+    def build_cookie_value(name, cookie_options)
+      cookie = "#{name}=#{cookie_value(cookie_options[:value], signed: cookie_options[:signed])}"
+      cookie << "; Expires=#{cookie_options[:expires].httpdate}" if cookie_options.include?(:expires)
+      cookie << '; HttpOnly' if cookie_options[:httponly] == true
+      cookie
+    end
+
+    def cookies
+      @cookies ||= parse_cookies
+    end
 
     def verified_signature(name, cookie)
       return cookie['value'] if cookie['verified']
@@ -37,14 +74,6 @@ module Cannon
         cookies.delete(name)
         nil
       end
-    end
-
-    def cookies_with_signatures
-      cookies.select { |k, v| v.include? 'signature' }
-    end
-
-    def cookies
-      @cookies ||= parse_cookies
     end
 
     def parse_cookies
@@ -94,6 +123,17 @@ module Cannon
       end
 
       return value, pos + 1
+    end
+
+    def cookie_value(value, signed:)
+      cookie_hash = {'value' => value}
+      cookie_hash['signature'] = signature(value) if signed
+      escape_cookie_value(cookie_hash.to_msgpack)
+    end
+
+    def escape_cookie_value(value)
+      return value unless value.match(/([\x00-\x20\x7F",;\\])/)
+      "\"#{value.gsub(/([\\"])/, "\\\\\\1")}\""
     end
   end
 end

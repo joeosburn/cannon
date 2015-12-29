@@ -4,7 +4,6 @@ module Cannon
   class Response
     extend Forwardable
     include Views
-    include Signature
 
     attr_reader :delegated_response, :headers
     attr_accessor :status
@@ -55,12 +54,12 @@ module Cannon
       http_version_not_supported:    505,
     }
 
-    def initialize(http_server, app)
+    def initialize(http_server, app, request: nil)
       @app = app
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @flushed = false
       @headers = {}
-      @cookies = {}
+      @request = request
 
       initialize_views
 
@@ -117,28 +116,17 @@ module Cannon
       send(html, status: :internal_server_error)
     end
 
-    def cookie(cookie, value:, expires: nil, httponly: nil, signed: false)
-      cookie_options = {:value => value}
-      cookie_options[:expires] = expires unless expires.nil?
-      cookie_options[:httponly] = httponly unless httponly.nil?
-      cookie_options[:signed] = signed
-      @cookies[cookie] = cookie_options
-    end
-
   private
 
     def set_cookie_headers
-      cookie_headers = (headers['Set-Cookie'] = [])
-      @cookies.each do |cookie, cookie_options|
-        cookie_headers << build_cookie_value(cookie, cookie_options)
-      end
-    end
+      cookie_values = []
+      cookie_values += @request.cookies.assigned_cookie_values if @request.respond_to?(:cookies)
+      cookie_values += @request.signed_cookies.assigned_cookie_values if @request.respond_to?(:signed_cookies)
 
-    def build_cookie_value(name, options)
-      cookie = "#{name}=#{cookie_value(options[:value], signed: options[:signed])}"
-      cookie << "; Expires=#{options[:expires].httpdate}" if options.include?(:expires)
-      cookie << '; HttpOnly' if options[:httponly] == true
-      cookie
+      return unless cookie_values.size > 0
+
+      cookie_headers = (headers['Set-Cookie'] = [])
+      cookie_values.each { |cookie_value| cookie_headers << cookie_value }
     end
 
     def converted_status(status)
@@ -149,17 +137,6 @@ module Cannon
       else
         status.to_s
       end
-    end
-
-    def cookie_value(value, signed:)
-      cookie_hash = {'value' => value}
-      cookie_hash['signature'] = signature(value) if signed
-      escape_cookie_value(cookie_hash.to_msgpack)
-    end
-
-    def escape_cookie_value(value)
-      return value unless value.match(/([\x00-\x20\x7F",;\\])/)
-      "\"#{value.gsub(/([\\"])/, "\\\\\\1")}\""
     end
   end
 end
