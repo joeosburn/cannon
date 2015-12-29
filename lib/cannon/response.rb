@@ -120,8 +120,8 @@ module Cannon
 
     def set_cookie_headers
       cookie_values = []
-      cookie_values += @request.cookies.set_cookie_values if @request.respond_to?(:cookies)
-      cookie_values += @request.signed_cookies.set_cookie_values if @request.respond_to?(:signed_cookies)
+      cookie_values += @request.cookies.assigned_cookie_values if @request.respond_to?(:cookies)
+      cookie_values += @request.signed_cookies.assigned_cookie_values if @request.respond_to?(:signed_cookies)
 
       return unless cookie_values.size > 0
 

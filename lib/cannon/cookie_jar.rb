@@ -10,10 +10,36 @@ module Cannon
       @http_cookie = http_cookie
       @cookies = cookies
       @signed = signed
-      @set_cookies = {}
+      @assigned_cookies = {}
     end
 
     def [](cookie_name)
+      get_assigned_cookie(cookie_name) || get_cookie(cookie_name)
+    end
+
+    def []=(cookie, value)
+      if value.is_a?(Hash)
+        assign_cookie(cookie, value)
+      else
+        assign_cookie(cookie, {value: value})
+      end
+    end
+
+    def with_signatures
+      cookies.select { |k, v| v.include? 'signature' }
+    end
+
+    def assigned_cookie_values
+      @assigned_cookies.map { |k, v| build_cookie_value(k, v) }
+    end
+
+  private
+
+    def get_assigned_cookie(cookie_name)
+      @assigned_cookies.dig(cookie_name, :value)
+    end
+
+    def get_cookie(cookie_name)
       cookie = cookies[cookie_name]
       if cookie
         @signed ? verified_signature(cookie_name, cookie) : cookie['value']
@@ -22,27 +48,9 @@ module Cannon
       end
     end
 
-    def []=(cookie, value)
-      if value.is_a?(Hash)
-        set_cookie(cookie, value)
-      else
-        set_cookie(cookie, {value: value})
-      end
-    end
-
-    def with_signatures
-      cookies.select { |k, v| v.include? 'signature' }
-    end
-
-    def set_cookie_values
-      @set_cookies.map { |k, v| build_cookie_value(k, v) }
-    end
-
-  private
-
-    def set_cookie(cookie, cookie_options)
+    def assign_cookie(cookie, cookie_options)
       cookie_options[:signed] = @signed
-      @set_cookies[cookie] = cookie_options
+      @assigned_cookies[cookie] = cookie_options
     end
 
     def build_cookie_value(name, cookie_options)
