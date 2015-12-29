@@ -9,7 +9,7 @@ module Cannon
 
     def process_http_request
       request = Request.new(self, app)
-      response = Response.new(self, app)
+      response = Response.new(self, app, request: request)
 
       app.reload_environment if app.config.reload_on_request
 

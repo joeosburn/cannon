@@ -10,6 +10,7 @@ module Cannon
       @http_cookie = http_cookie
       @cookies = cookies
       @signed = signed
+      @set_cookies = {}
     end
 
     def [](cookie_name)
@@ -21,11 +22,35 @@ module Cannon
       end
     end
 
+    def []=(cookie, value)
+      if value.is_a?(Hash)
+        set_cookie(cookie, value)
+      else
+        set_cookie(cookie, {value: value})
+      end
+    end
+
     def with_signatures
       cookies.select { |k, v| v.include? 'signature' }
     end
 
+    def set_cookie_values
+      @set_cookies.map { |k, v| build_cookie_value(k, v) }
+    end
+
   private
+
+    def set_cookie(cookie, cookie_options)
+      cookie_options[:signed] = @signed
+      @set_cookies[cookie] = cookie_options
+    end
+
+    def build_cookie_value(name, cookie_options)
+      cookie = "#{name}=#{cookie_value(cookie_options[:value], signed: cookie_options[:signed])}"
+      cookie << "; Expires=#{cookie_options[:expires].httpdate}" if cookie_options.include?(:expires)
+      cookie << '; HttpOnly' if cookie_options[:httponly] == true
+      cookie
+    end
 
     def cookies
       @cookies ||= parse_cookies
@@ -90,6 +115,17 @@ module Cannon
       end
 
       return value, pos + 1
+    end
+
+    def cookie_value(value, signed:)
+      cookie_hash = {'value' => value}
+      cookie_hash['signature'] = signature(value) if signed
+      escape_cookie_value(cookie_hash.to_msgpack)
+    end
+
+    def escape_cookie_value(value)
+      return value unless value.match(/([\x00-\x20\x7F",;\\])/)
+      "\"#{value.gsub(/([\\"])/, "\\\\\\1")}\""
     end
   end
 end

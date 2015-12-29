@@ -3,20 +3,20 @@ require 'spec_helper'
 RSpec.describe 'Cookies', :cannon_app do
   before(:all) do
     cannon_app.get('/basic') do |request, response|
-      response.cookie(:simple, value: 'value')
+      request.cookies[:simple] = 'value'
       response.send("cookie = #{request.cookies[:simple]}")
     end
 
     cannon_app.get('/cookies') do |request, response|
-      response.cookie(:remember_me, value: 'true')
-      response.cookie(:username, value: '"Luther;Martin"', expires: Time.new(2017, 10, 31, 10, 30, 05), httponly: true)
-      response.cookie(:password, value: 'by=faith')
       response.send("username = #{request.cookies[:username]}, password = #{request.cookies[:password]}, remember_me = #{request.cookies[:remember_me]}")
+      request.cookies[:remember_me] = 'true'
+      request.cookies[:username] = {value: '"Luther;Martin"', expires: Time.new(2017, 10, 31, 10, 30, 05), httponly: true}
+      request.cookies[:password] = 'by=faith'
     end
 
     cannon_app.get('/signed') do |request, response|
-      response.cookie(:secure_value, value: 'SECURE', signed: true)
       response.send("secure value = #{request.signed_cookies[:secure_value]}")
+      request.signed_cookies[:secure_value] = 'SECURE'
     end
 
     cannon_app.listen(async: true)
