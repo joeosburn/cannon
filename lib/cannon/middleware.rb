@@ -4,6 +4,7 @@ require 'cannon/middleware/files'
 require 'cannon/middleware/router'
 require 'cannon/middleware/content_type'
 require 'cannon/middleware/cookies'
+require 'cannon/middleware/session'
 
 module Cannon
   class MiddlewareRunner

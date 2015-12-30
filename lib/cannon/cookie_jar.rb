@@ -1,4 +1,5 @@
 require 'msgpack'
+require 'base64'
 
 module Cannon
   class CookieJar
@@ -87,7 +88,7 @@ module Cannon
           name, pos = read_cookie_name(@http_cookie, pos)
           value, pos = read_cookie_value(@http_cookie, pos)
           begin
-            cookies[name] = MessagePack.unpack(value)
+            cookies[name] = MessagePack.unpack(::Base64.strict_decode64(value))
           rescue StandardError; end
         end
       rescue EndOfString
@@ -128,7 +129,7 @@ module Cannon
     def cookie_value(value, signed:)
       cookie_hash = {'value' => value}
       cookie_hash['signature'] = signature(value) if signed
-      escape_cookie_value(cookie_hash.to_msgpack)
+      escape_cookie_value(::Base64.strict_encode64(cookie_hash.to_msgpack))
     end
 
     def escape_cookie_value(value)

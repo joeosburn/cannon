@@ -5,7 +5,7 @@ module Cannon
     attr_accessor :middleware, :public_path, :view_path, :reload_on_request, :benchmark_requests, :port, :ip_address
     attr_reader :logger, :log_level
 
-    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Cookies Router ContentType}
+    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Cookies Session Router ContentType}
 
     LOG_LEVELS = {
       unknown: Logger::UNKNOWN,
@@ -47,11 +47,23 @@ module Cannon
       @cookies ||= Cookies.new
     end
 
+    def session
+      @session ||= Session.new
+    end
+
     class Cookies
       attr_accessor :secret
 
       def initialize
         self.secret = nil
+      end
+    end
+
+    class Session
+      attr_accessor :cookie_name
+
+      def initialize
+        self.cookie_name = '__session'
       end
     end
   end
