@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'base64'
 
 RSpec.describe 'Cookies', :cannon_app do
   before(:all) do
@@ -72,7 +73,11 @@ RSpec.describe 'Cookies', :cannon_app do
     end
 
     it 'will clear the cookie if the cookie is tampered' do
-      cookies['secure_value'].value.gsub!('SECURE', 'SeCURE')
+      # Cookies are encoded with base64, so update using base64 encoding
+      cookie_value = Base64.strict_decode64(cookies['secure_value'].value)
+      cookie_value.gsub!('SECURE', 'SeCURE')
+      cookies['secure_value'].value = Base64.strict_encode64(cookies['secure_value'].value)
+
       get '/signed'
       expect(response.body).to eq('secure value = ')
     end
