@@ -26,6 +26,10 @@ module Cannon
       end
     end
 
+    def delete(cookie)
+      assign_cookie(cookie, {value: '', max_age: 0, expires: Time.at(0)})
+    end
+
     def with_signatures
       cookies.select { |k, v| v.include? 'signature' }
     end
@@ -58,6 +62,7 @@ module Cannon
       cookie = "#{name}=#{cookie_value(cookie_options[:value], signed: cookie_options[:signed])}"
       cookie << "; Expires=#{cookie_options[:expires].httpdate}" if cookie_options.include?(:expires)
       cookie << '; HttpOnly' if cookie_options[:httponly] == true
+      cookie << "; Max-Age=#{cookie_options[:max_age]}" if cookie_options.include?(:max_age)
       cookie
     end
 
