@@ -17,6 +17,11 @@ RSpec.describe 'Cookies', :cannon_app do
       request.cookies['password'] = {value: 'by=faith', max_age: 400}
     end
 
+    cannon_app.get('/delete') do |request, response|
+      request.cookies.delete('username')
+      response.send('deleted')
+    end
+
     cannon_app.get('/signed') do |request, response|
       response.send("secure value = #{request.signed_cookies['secure_value']}")
       request.signed_cookies['secure_value'] = 'SECURE'
@@ -59,6 +64,16 @@ RSpec.describe 'Cookies', :cannon_app do
     get '/update'
 
     expect(response.body).to eq('simple = new value complex = more complex signed = a signed value')
+  end
+
+  it 'can delete cookies' do
+    get '/cookies'
+    expect(cookies).to include('username')
+    expect(cookies).to include('password')
+
+    get '/delete'
+    expect(cookies).to_not include('username')
+    expect(cookies).to include('password')
   end
 
   describe 'signed' do

@@ -26,6 +26,10 @@ module Cannon
       end
     end
 
+    def delete(cookie)
+      assign_cookie(cookie, {value: '', max_age: 0, expires: Time.at(0)})
+    end
+
     def with_signatures
       cookies.select { |k, v| v.include? 'signature' }
     end
