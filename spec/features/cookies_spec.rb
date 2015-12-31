@@ -14,7 +14,7 @@ RSpec.describe 'Cookies', :cannon_app do
       response.send("remember_me = #{request.cookies['remember_me']}")
       request.cookies['remember_me'] = 'true'
       request.cookies['username'] = {value: '"Luther;Martin"', expires: Time.new(2017, 10, 31, 10, 30, 05), httponly: true}
-      request.cookies['password'] = 'by=faith'
+      request.cookies['password'] = {value: 'by=faith', max_age: 400}
     end
 
     cannon_app.get('/signed') do |request, response|
@@ -48,7 +48,7 @@ RSpec.describe 'Cookies', :cannon_app do
 
     expect(cookies['username'].httponly).to be true
     expect(cookies['username'].expires).to eq(Time.new(2017, 10, 31, 10, 30, 05))
-    expect(cookies['password'].expires).to be nil
+    expect(cookies['password'].max_age).to eq(400)
 
     get '/cookies'
     expect(response.body).to eq('username = "Luther;Martin", password = by=faith, remember_me = true')

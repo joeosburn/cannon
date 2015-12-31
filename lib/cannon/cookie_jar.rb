@@ -58,6 +58,7 @@ module Cannon
       cookie = "#{name}=#{cookie_value(cookie_options[:value], signed: cookie_options[:signed])}"
       cookie << "; Expires=#{cookie_options[:expires].httpdate}" if cookie_options.include?(:expires)
       cookie << '; HttpOnly' if cookie_options[:httponly] == true
+      cookie << "; Max-Age=#{cookie_options[:max_age]}" if cookie_options.include?(:max_age)
       cookie
     end
 
