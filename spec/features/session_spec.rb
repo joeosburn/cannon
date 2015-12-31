@@ -26,6 +26,11 @@ RSpec.describe 'Session', :cannon_app do
       response.send('Logged out')
     end
 
+    cannon_app.get('/reset') do |request, response|
+      request.session.clear
+      response.send('cleared')
+    end
+
     cannon_app.get('/session-info') do |request, response|
       response.send("logged_in = '#{request.session['logged_in']}',")
       response.send(" username nil? = #{request.session['username'].nil?}")
@@ -50,5 +55,12 @@ RSpec.describe 'Session', :cannon_app do
     get '/logout'
     get '/session-info'
     expect(response.body).to eq("logged_in = 'false', username nil? = true")
+  end
+
+  it 'allows the session to be cleared' do
+    post '/login', username: 'joe', password: 'bob'
+    get '/reset'
+    get '/session-info'
+    expect(response.body).to eq("logged_in = '', username nil? = true")
   end
 end
