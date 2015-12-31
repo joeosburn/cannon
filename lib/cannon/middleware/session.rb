@@ -33,6 +33,16 @@ class Cannon::Session
     write_cookie
   end
 
+  def delete(key)
+    session_cookie.delete(key)
+    write_cookie
+  end
+
+  def clear
+    session_cookie.clear
+    write_cookie
+  end
+
 private
 
   def session_cookie
