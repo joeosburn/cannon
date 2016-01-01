@@ -3,7 +3,6 @@ require 'msgpack'
 module Cannon
   module Middleware
     class Session
-
       def initialize(app)
         @app = app
       end
