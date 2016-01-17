@@ -1,4 +1,3 @@
-require 'mime/types'
 require 'pry'
 
 module Cannon
@@ -18,7 +17,6 @@ module Cannon
 
       define_cannon_environment
       define_cannon_root
-      define_cannon_mime_type
       define_cannon_config
       define_cannon_configure_method
       define_cannon_logger
@@ -155,11 +153,6 @@ module Cannon
       app = self
       Cannon.send(:define_method, :logger, -> { app.config.logger })
       Cannon.send(:module_function, :logger)
-    end
-
-    def define_cannon_mime_type
-      Cannon.send(:define_method, :mime_type, ->(filepath) { MIME::Types.type_for(filepath.split('/').last).first })
-      Cannon.send(:module_function, :mime_type)
     end
 
     def cannon_method(name, value)
