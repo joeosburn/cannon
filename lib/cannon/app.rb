@@ -12,14 +12,10 @@ module Cannon
       @load_environment = block
       @cache = {}
 
-      config.port = port unless port.nil?
-      config.ip_address = ip_address unless ip_address.nil?
+      Cannon.config.port = port unless port.nil?
+      Cannon.config.ip_address = ip_address unless ip_address.nil?
 
-      define_cannon_environment
       define_cannon_root
-      define_cannon_config
-      define_cannon_configure_method
-      define_cannon_logger
       define_cannon_cache
     end
 
@@ -29,7 +25,7 @@ module Cannon
       end
     end
 
-    def listen(port: config.port, ip_address: config.ip_address, async: false)
+    def listen(port: Cannon.config.port, ip_address: Cannon.config.ip_address, async: false)
       cannon_app = self
 
       if ENV['CONSOLE']
@@ -43,7 +39,7 @@ module Cannon
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << Cannon.root
-      reload_environment unless config.reload_on_request
+      reload_environment unless Cannon.config.reload_on_request
 
       server_block = ->(notifier) do
         EventMachine::run {
@@ -77,19 +73,8 @@ module Cannon
       @load_environment.call unless @load_environment.nil?
     end
 
-    def configure(*environments, &block)
-      environments.each do |environment|
-        define_env_helper(environment)
-        yield config if Cannon.env == environment.to_s
-      end
-    end
-
     def config
-      @config ||= Config.new
-    end
-
-    def env
-      @env ||= detect_env
+      @config ||= AppConfig.new
     end
 
     def middleware_runner
@@ -114,31 +99,6 @@ module Cannon
       route = Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
       routes << route
       extra_router(route)
-    end
-
-    def detect_env
-      ENV['CANNON_ENV'] ? ENV['CANNON_ENV'].dup : 'development'
-    end
-
-    def define_cannon_environment
-      cannon_method(:env, self.env)
-      define_env_helper(self.env)
-    end
-
-    def define_env_helper(env)
-      helper_method = "#{env}?"
-      return if Cannon.env.respond_to?(helper_method)
-      Cannon.env.singleton_class.send(:define_method, helper_method) { Cannon.env == env }
-    end
-
-    def define_cannon_config
-      cannon_method(:config, self.config)
-    end
-
-    def define_cannon_configure_method
-      app = self
-      Cannon.send(:define_method, :configure, ->(*environments, &block) { app.configure(*environments, &block) })
-      Cannon.send(:module_function, :configure)
     end
 
     def define_cannon_root

@@ -90,9 +90,9 @@ private
   end
 
   def create_cannon_app
+    Cannon.config.log_level = :error
+    Cannon.config.cookies.secret = 'test'
     app = Cannon::App.new(binding, port: PORT, ip_address: '127.0.0.1')
-    app.config.log_level = :error
-    app.config.cookies.secret = 'test'
     app
   end
 end
@@ -100,9 +100,15 @@ end
 RSpec.configure do |config|
   config.include Cannon::Test
 
-  config.append_after(:context, cannon_app: true) do
+  config.append_after(:each, cannon_app: true) do
     cannon_app.stop
+  end
+
+  config.append_before(:each, cannon_app: true) do
     @cannon_app = nil
     jar.clear
+    Cannon.instance_variable_set('@env', nil)
+    Cannon.instance_variable_set('@config', nil)
+    create_cannon_app
   end
 end

@@ -25,7 +25,7 @@ private
   end
 
   def outdated_cache?
-    if @app.config.reload_on_request
+    if Cannon.config.reload_on_request
       @last_path_signature != current_path_signature
     else
       @last_path_signature.nil?

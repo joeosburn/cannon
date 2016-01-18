@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'base64'
 
 RSpec.describe 'Cookies', :cannon_app do
-  before(:all) do
+  before(:each) do
     cannon_app.get('/basic') do |request, response|
       response.send("cookie = #{request.cookies['simple']}")
       request.cookies['simple'] = 'value'

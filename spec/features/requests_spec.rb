@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Requests', :cannon_app do
-  before(:all) do
+  before(:each) do
     cannon_app.get('/basic') do |request, response|
       response.send('hi')
     end.handle do |request, response|

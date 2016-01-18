@@ -11,7 +11,7 @@ module Cannon
       request = Request.new(self, app)
       response = Response.new(self, app, request: request)
 
-      app.reload_environment if app.config.reload_on_request
+      app.reload_environment if Cannon.config.reload_on_request
 
       app.middleware_runner.run(request, response) if middleware?
     end

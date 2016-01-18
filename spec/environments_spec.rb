@@ -5,7 +5,7 @@ RSpec.describe 'Cannon environment', :cannon_app do
     before(:each) { ENV['CANNON_ENV'] = nil }
 
     it 'sets the environment to development' do
-      expect(cannon_app.env).to eq('development')
+      expect(Cannon.env).to eq('development')
     end
   end
 
@@ -13,7 +13,7 @@ RSpec.describe 'Cannon environment', :cannon_app do
     before(:each) { ENV['CANNON_ENV'] = 'strange' }
 
     it 'sets the environment to the environment specified' do
-      expect(cannon_app.env).to eq('strange')
+      expect(Cannon.env).to eq('strange')
     end
   end
 
@@ -21,24 +21,24 @@ RSpec.describe 'Cannon environment', :cannon_app do
     before(:each) do
       ENV['CANNON_ENV'] = 'carrots'
 
-      cannon_app.configure(:potatoes) {}
-      Cannon.configure(:celeries) {}
-      cannon_app.configure(:onions, :lettuce, :pickles)
+      Cannon.environment(:potatoes) {}
+      Cannon.environment(:celeries) {}
+      Cannon.environment(:onions, :lettuce, :pickles)
     end
 
     it 'creates a helper method for current environment' do
-      expect(cannon_app.env.carrots?).to be(true)
+      expect(Cannon.env.carrots?).to be(true)
     end
 
     it 'creates helper methods for single configured environments' do
-      expect(cannon_app.env.potatoes?).to be(false)
-      expect(cannon_app.env.celeries?).to be(false)
+      expect(Cannon.env.potatoes?).to be(false)
+      expect(Cannon.env.celeries?).to be(false)
     end
 
     it 'creates helper methods for multi configured environments' do
-      expect(cannon_app.env.onions?).to be(false)
-      expect(cannon_app.env.lettuce?).to be(false)
-      expect(cannon_app.env.pickles?).to be(false)
+      expect(Cannon.env.onions?).to be(false)
+      expect(Cannon.env.lettuce?).to be(false)
+      expect(Cannon.env.pickles?).to be(false)
     end
   end
 
@@ -46,23 +46,27 @@ RSpec.describe 'Cannon environment', :cannon_app do
     before(:each) do
       ENV['CANNON_ENV'] = 'carrots'
 
-      cannon_app.configure(:potatoes) do |config|
-        config.view_path = 'potatoes_view_path'
+      Cannon.environment(:potatoes) do
+        cannon_app.config.view_path = 'potatoes_view_path'
+        Cannon.config.log_level = :debug
       end
-      cannon_app.configure(:carrots) do |config|
-        config.view_path = 'carrots_view_path'
+      Cannon.environment(:carrots) do
+        cannon_app.config.view_path = 'carrots_view_path'
+        Cannon.config.log_level = :warn
       end
-      Cannon.configure(:pickles) do |config|
-        config.public_path = 'pickles_view_path'
+      Cannon.environment(:pickles) do
+        cannon_app.config.public_path = 'pickles_view_path'
+        Cannon.config.log_level = :error
       end
-      cannon_app.configure(:onions, :carrots) do |config|
-        config.public_path = 'shared_view_path'
+      Cannon.environment(:onions, :carrots) do
+        cannon_app.config.public_path = 'shared_view_path'
       end
     end
 
     it 'runs the configuration for the given environment' do
-      expect(Cannon.config.view_path).to eq('carrots_view_path')
-      expect(Cannon.config.public_path).to eq('shared_view_path')
+      expect(cannon_app.config.view_path).to eq('carrots_view_path')
+      expect(cannon_app.config.public_path).to eq('shared_view_path')
+      expect(Cannon.config.log_level).to eq(:warn)
     end
   end
 end
