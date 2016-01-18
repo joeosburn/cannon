@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Session', :cannon_app do
-  before(:all) do
+  before(:each) do
     cannon_app.get('/member') do |request, response|
       if request.session['logged_in'] != 'true'
         response.temporary_redirect('/login')

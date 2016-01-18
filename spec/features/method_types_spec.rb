@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Method types', :cannon_app do
-  before(:all) do
+  before(:each) do
     cannon_app.get('/hi') do |request, response|
       response.send('hi')
     end

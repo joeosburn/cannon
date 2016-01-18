@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Flash', :cannon_app do
-  before(:all) do
+  before(:each) do
     cannon_app.get('/assign') do |request, response|
       request.flash['notice'] = 'assigned'
       response.send('assigned')

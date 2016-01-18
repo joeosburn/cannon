@@ -56,7 +56,7 @@ class World
 end
 
 RSpec.describe 'Cannon app', :cannon_app do
-  before(:all) do
+  before(:each) do
     cannon_app.get('/1-2-simple', actions: ['first', 'second'])
     cannon_app.get('/hi', action: 'hi')
     cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Views', :cannon_app do
-  before(:all) do
+  before(:each) do
     cannon_app.config.view_path = '../fixtures/views'
 
     cannon_app.get('/view') do |request, response|

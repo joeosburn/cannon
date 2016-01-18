@@ -1,3 +1,5 @@
+require 'mime/types'
+
 module PathCache
   def self.included(base)
     base.send(:attr_accessor, :base_path, :cache)
@@ -15,11 +17,15 @@ private
   end
 
   def read_file_and_content_type(filepath)
-    [IO.binread(filepath), Cannon.mime_type(filepath)]
+    [IO.binread(filepath), mime_type(filepath)]
+  end
+
+  def mime_type(filepath)
+    MIME::Types.type_for(filepath.split('/').last).first
   end
 
   def outdated_cache?
-    if @app.config.reload_on_request
+    if Cannon.config.reload_on_request
       @last_path_signature != current_path_signature
     else
       @last_path_signature.nil?
