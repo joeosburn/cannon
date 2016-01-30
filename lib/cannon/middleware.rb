@@ -1,4 +1,3 @@
-require 'cannon/middleware/flush_and_benchmark'
 require 'cannon/middleware/request_logger'
 require 'cannon/middleware/files'
 require 'cannon/middleware/router'
@@ -30,7 +29,11 @@ module Cannon
     def setup_callback
       set_deferred_status nil
       callback do |request, response|
-        @callback.run(request, response) unless @callback.nil?
+        if @callback
+          @callback.run(request, response)
+        elsif request.handled?
+          response.finish
+        end
       end
     end
 

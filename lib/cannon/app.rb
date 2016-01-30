@@ -85,13 +85,18 @@ module Cannon
     def handle(request, response)
       @subapps.each do |mounted_at, subapp|
         mount_matcher = /^#{mounted_at}/
+
         if request.path =~ mount_matcher
+          original_path = request.path.dup
           request.path.gsub!(mount_matcher, '')
           subapp.handle(request, response)
+          request.path = original_path
         end
+
+        return if request.handled?
       end
 
-      middleware_runner.run(request, response) if config.middleware.size > 0
+      middleware_runner.run(request, response) unless config.middleware.size == 0
     end
 
   private
@@ -101,8 +106,7 @@ module Cannon
     end
 
     def prepared_middleware_stack
-      stack = config.middleware.dup
-      stack << 'FlushAndBenchmark'
+      config.middleware.dup
     end
 
     def build_middleware_runner(middleware, callback: nil)

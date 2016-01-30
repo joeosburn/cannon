@@ -14,6 +14,11 @@ module Cannon
       app.reload_environment if Cannon.config.reload_on_request
 
       app.handle(request, response)
+
+      unless request.handled?
+        response.not_found
+        response.finish
+      end
     end
   end
 end

@@ -6,6 +6,8 @@ module Cannon
       end
 
       def run(request, response, next_proc)
+        return next_proc.call if request.handled?
+
         request.define_singleton_method(:flash) do
           @flash ||= Cannon::Flash.new(cookie_jar: request.signed_cookies)
         end

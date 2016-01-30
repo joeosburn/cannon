@@ -26,6 +26,8 @@ module Cannon
     end
 
     def handle(request, response, finish_proc)
+      request.handle!
+
       if redirect
         response.permanent_redirect(redirect)
       elsif @route_action

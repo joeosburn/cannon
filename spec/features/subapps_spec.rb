@@ -33,4 +33,9 @@ RSpec.describe 'Subapps', :cannon_app do
     get '/info'
     expect(response.body).to eq('Main Info')
   end
+
+  it 'allows normal requests at a subapp mounting point' do
+    get '/admin/info'
+    expect(response.body).to eq('Admin Info')
+  end
 end
