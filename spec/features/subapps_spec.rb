@@ -11,6 +11,12 @@ RSpec.describe 'Subapps', :cannon_app do
     end
     cannon_app.mount(admin_app, at: '/admin')
 
+    resources_app = Cannon::App.new(binding)
+    resources_app.get('/') do |request, response|
+      response.send('resources admin')
+    end
+    admin_app.mount(resources_app, at: '/resources')
+
     cannon_app.get('/info') do |request, response|
       response.send('Main Info')
     end
@@ -37,5 +43,10 @@ RSpec.describe 'Subapps', :cannon_app do
   it 'allows normal requests at a subapp mounting point' do
     get '/admin/info'
     expect(response.body).to eq('Admin Info')
+  end
+
+  it 'allows mounting of apps within apps' do
+    get '/admin/resources/'
+    expect(response.body).to eq('resources admin')
   end
 end
