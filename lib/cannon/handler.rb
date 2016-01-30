@@ -13,13 +13,7 @@ module Cannon
 
       app.reload_environment if Cannon.config.reload_on_request
 
-      app.middleware_runner.run(request, response) if middleware?
-    end
-
-  private
-
-    def middleware?
-      app.config.middleware.size > 0
+      app.handle(request, response)
     end
   end
 end
