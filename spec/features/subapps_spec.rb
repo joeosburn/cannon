@@ -17,6 +17,12 @@ RSpec.describe 'Subapps', :cannon_app do
     end
     admin_app.mount(resources_app, at: '/resources')
 
+    catalog_app = Cannon::App.new(binding)
+    catalog_app.get('/') do |request, response|
+      response.send('catalog index')
+    end
+    cannon_app.mount(catalog_app, at: '/library')
+
     cannon_app.get('/info') do |request, response|
       response.send('Main Info')
     end
@@ -48,5 +54,10 @@ RSpec.describe 'Subapps', :cannon_app do
   it 'allows mounting of apps within apps' do
     get '/admin/resources/'
     expect(response.body).to eq('resources admin')
+  end
+
+  it 'allows mounting multiple apps' do
+    get '/library/'
+    expect(response.body).to eq('catalog index')
   end
 end
