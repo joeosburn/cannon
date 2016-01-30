@@ -10,6 +10,8 @@ module Cannon
       end
 
       def run(request, response, next_proc)
+        return next_proc.call if request.handled?
+
         request.define_singleton_method(:cookies) do
           @cookie_jar ||= CookieJar.new(http_cookie: request.http_cookie)
         end

@@ -16,10 +16,20 @@ module Cannon
       self.post_content = http_server.instance_variable_get('@http_post_content')
       self.headers = http_server.instance_variable_get('@http_headers')
       self.start_time = Time.now
+
+      @handled = false
     end
 
     def params
       @params ||= parse_params
+    end
+
+    def handled?
+      @handled
+    end
+
+    def handle!
+      @handled = true
     end
 
   private

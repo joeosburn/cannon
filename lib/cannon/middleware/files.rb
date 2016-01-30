@@ -11,16 +11,18 @@ module Cannon
       end
 
       def run(request, response, next_proc)
+        return next_proc.call if request.handled?
+
         reload_cache if outdated_cache?
 
         if path_array.include? request.path
           file, content_type = *file_and_content_type("#{base_path}#{request.path}")
           response.header('Content-Type', content_type)
           response.send(file)
-          response.flush
-        else
-          next_proc.call
+          request.handle!
         end
+
+        next_proc.call
       end
 
     private

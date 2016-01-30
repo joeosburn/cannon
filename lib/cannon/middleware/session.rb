@@ -8,6 +8,8 @@ module Cannon
       end
 
       def run(request, response, next_proc)
+        return next_proc.call if request.handled?
+
         request.define_singleton_method(:session) do
           @session ||= Cannon::Session.new(cookie_jar: request.signed_cookies)
         end

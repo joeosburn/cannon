@@ -8,6 +8,7 @@ module Cannon
 
     def initialize(app_binding, port: nil, ip_address: nil, &block)
       @app_binding = app_binding
+      @subapps = {}
       @routes = []
       @load_environment = block
       @cache = {}
@@ -23,6 +24,10 @@ module Cannon
       define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, &block|
         add_route(path, method: http_method.to_sym, action: action, actions: actions, redirect: redirect, &block)
       end
+    end
+
+    def mount(app, at:)
+      @subapps[at] = app
     end
 
     def listen(port: Cannon.config.port, ip_address: Cannon.config.ip_address, async: false)
@@ -77,15 +82,31 @@ module Cannon
       @config ||= AppConfig.new
     end
 
-    def middleware_runner
-      @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
+    def handle(request, response)
+      @subapps.each do |mounted_at, subapp|
+        mount_matcher = /^#{mounted_at}/
+
+        if request.path =~ mount_matcher
+          original_path = request.path.dup
+          request.path.gsub!(mount_matcher, '')
+          subapp.handle(request, response)
+          request.path = original_path
+        end
+
+        return if request.handled?
+      end
+
+      middleware_runner.run(request, response) unless config.middleware.size == 0
     end
 
   private
 
+    def middleware_runner
+      @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
+    end
+
     def prepared_middleware_stack
-      stack = config.middleware.dup
-      stack << 'FlushAndBenchmark'
+      config.middleware.dup
     end
 
     def build_middleware_runner(middleware, callback: nil)

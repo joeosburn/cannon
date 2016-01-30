@@ -66,6 +66,11 @@ module Cannon
       self.status = :ok
     end
 
+    def finish
+      flush unless flushed?
+      benchmark_request(@request) if Cannon.config.benchmark_requests
+    end
+
     def flushed?
       @flushed
     end
@@ -117,6 +122,14 @@ module Cannon
     end
 
   private
+
+    def benchmark_request(request)
+      Cannon.logger.debug "Response took #{time_ago_in_ms(request.start_time)}ms"
+    end
+
+    def time_ago_in_ms(time_ago)
+      Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
+    end
 
     def set_cookie_headers
       cookie_values = []
