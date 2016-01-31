@@ -9,7 +9,9 @@ RSpec.describe 'Views', :cannon_app do
     end
 
     cannon_app.get('/render') do |request, response|
-      response.view('render_test.html', name: 'John Calvin')
+      response.context[:name] = 'John Calvin'
+      response.context[:greeting] = 'Hello'
+      response.view('render_test.html')
     end
 
     cannon_app.listen(async: true)
@@ -25,7 +27,7 @@ RSpec.describe 'Views', :cannon_app do
 
     it 'handles mustache templates' do
       get '/render'
-      expect(response.body).to eq('Hello John Calvin')
+      expect(response.body).to include('Hello John Calvin')
     end
   end
 end

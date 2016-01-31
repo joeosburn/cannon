@@ -4,12 +4,16 @@ module Cannon
   module Views
     include PathCache
 
-    def view(filename, options = {})
+    def view(filename)
       reload_cache if outdated_cache?
 
       file, content_type = *file_and_content_type("#{base_path}/#{filename}")
       header('Content-Type', content_type)
-      send(Mustache.render(file, options), status: status)
+      send(Mustache.render(file, context), status: status)
+    end
+
+    def context
+      @context ||= {}
     end
 
   protected
