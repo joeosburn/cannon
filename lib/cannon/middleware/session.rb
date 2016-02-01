@@ -11,7 +11,7 @@ module Cannon
         return next_proc.call if request.handled?
 
         request.define_singleton_method(:session) do
-          @session ||= Cannon::Session.new(cookie_jar: request.signed_cookies)
+          @session ||= Cannon::Session.new(request.app, cookie_jar: request.signed_cookies)
         end
 
         next_proc.call
@@ -21,7 +21,8 @@ module Cannon
 end
 
 class Cannon::Session
-  def initialize(cookie_jar:)
+  def initialize(app, cookie_jar:)
+    @app = app
     @cookie_jar = cookie_jar
   end
 
@@ -51,11 +52,11 @@ private
   end
 
   def write_cookie
-    @cookie_jar[Cannon.config.session.cookie_name] = {value: session_cookie.to_msgpack}
+    @cookie_jar[@app.runtime.config.session.cookie_name] = {value: session_cookie.to_msgpack}
   end
 
   def read_cookie
-    cookie = @cookie_jar[Cannon.config.session.cookie_name]
+    cookie = @cookie_jar[@app.runtime.config.session.cookie_name]
     cookie ? MessagePack.unpack(cookie) : {}
   end
 end

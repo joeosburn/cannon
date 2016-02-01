@@ -5,6 +5,8 @@ module Cannon
     attr_accessor :protocol, :method, :http_cookie, :content_type, :path, :uri, :query_string, :post_content, :headers,
                   :start_time
 
+    attr_reader :app
+
     def initialize(http_server, app)
       self.protocol = http_server.instance_variable_get('@http_protocol')
       self.method = http_server.instance_variable_get('@http_request_method')
@@ -16,6 +18,7 @@ module Cannon
       self.post_content = http_server.instance_variable_get('@http_post_content')
       self.headers = http_server.instance_variable_get('@http_headers')
       self.start_time = Time.now
+      @app = app
 
       @handled = false
     end

@@ -44,7 +44,7 @@ class RouteAction
 private
 
   def run_inline_action(request, response, next_proc)
-    Cannon.logger.debug 'Action: Inline'
+    @app.logger.debug 'Action: Inline'
 
     if @action.arity == 2
       @action.call(request, response)
@@ -57,7 +57,7 @@ private
   def run_controller_action(request, response, next_proc)
     controller, action = @action.split('#')
 
-    Cannon.logger.debug "Controller: #{controller}, Action: #{action}"
+    @app.logger.debug "Controller: #{controller}, Action: #{action}"
 
     controller_instance = RouteAction.controller(controller, @app)
     if controller_instance.method(action).arity == 2
@@ -69,7 +69,7 @@ private
   end
 
   def run_bound_action(request, response, next_proc)
-    Cannon.logger.debug "Action: #{@action}"
+    @app.logger.debug "Action: #{@action}"
 
     if @app.app_binding.method(@action).arity == 2
       @app.app_binding.send(@action, request, response)

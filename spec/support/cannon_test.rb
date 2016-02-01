@@ -27,34 +27,23 @@ private
 end
 
 module Cannon::Test
-  PORT = 5031
+  DEFAULT_PORT = 5031
 
   def cannon_app
     @cannon_app ||= create_cannon_app
   end
 
-  def get(path, params = {})
-    http_request(path, Net::HTTP::Get, query_params: params)
-  end
-
-  def post(path, params = {})
-    http_request(path, Net::HTTP::Post, post_params: params)
-  end
-
-  def put(path, params = {})
-    http_request(path, Net::HTTP::Put, post_params: params)
-  end
-
-  def patch(path, params = {})
-    http_request(path, Net::HTTP::Patch, post_params: params)
-  end
-
-  def delete(path, params = {})
-    http_request(path, Net::HTTP::Delete, post_params: params)
-  end
-
-  def head(path, params = {})
-    http_request(path, Net::HTTP::Head, query_params: params)
+  {
+    get:    :query,
+    post:   :post,
+    put:    :post,
+    patch:  :post,
+    delete: :post,
+    head:   :query,
+  }.each do |http_method, params_type|
+    define_method(http_method) do |path, port: DEFAULT_PORT, **params|
+      http_request(path, Net::HTTP.const_get(http_method.capitalize, false), :port => port, params_type => params)
+    end
   end
 
   def response
@@ -71,11 +60,11 @@ module Cannon::Test
 
 private
 
-  def http_request(path, request_class, post_params: nil, query_params: nil)
-    uri = URI("http://127.0.0.1:#{PORT}#{path}")
-    uri.query = URI.encode_www_form(query_params) unless query_params.nil?
+  def http_request(path, request_class, port:, post: nil, query: nil)
+    uri = URI("http://127.0.0.1:#{port}#{path}")
+    uri.query = URI.encode_www_form(query) unless query.nil?
     req = request_class.new(uri)
-    req.set_form_data(post_params) unless post_params.nil?
+    req.set_form_data(post) unless post.nil?
     req['Cookie'] = HTTP::Cookie.cookie_value(jar.cookies(uri)) unless jar.empty?
 
     @response = MockResponse.new(Net::HTTP.start(uri.hostname, uri.port) do |http|
@@ -90,9 +79,9 @@ private
   end
 
   def create_cannon_app
-    Cannon.config.log_level = :error
-    Cannon.config.cookies.secret = 'test'
-    app = Cannon::App.new(binding, port: PORT, ip_address: '127.0.0.1')
+    app = Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1')
+    app.runtime.config.log_level = :error
+    app.runtime.config.cookies.secret = 'test'
     app
   end
 end

@@ -28,7 +28,7 @@ module Cannon
     private
 
       def build_base_path
-        @app.config.public_path =~ /^\// ? @app.config.public_path : "#{Cannon.root}/#{@app.config.public_path}"
+        @app.config.public_path =~ /^\// ? @app.config.public_path : "#{@app.runtime.root}/#{@app.config.public_path}"
       end
     end
   end
