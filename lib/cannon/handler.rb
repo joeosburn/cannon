@@ -2,16 +2,13 @@ module Cannon
   class Handler < EventMachine::Connection
     include EventMachine::HttpServer
 
-    def app
-      # magically defined by Cannon::App
-      self.class.app
-    end
+    attr_accessor :app
 
     def process_http_request
       request = Request.new(self, app)
       response = Response.new(self, app, request: request)
 
-      app.reload_environment if Cannon.config.reload_on_request
+      app.reload_environment if app.runtime.config.reload_on_request
 
       app.handle(request, response)
 

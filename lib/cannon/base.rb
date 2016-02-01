@@ -1,6 +1,6 @@
 module Cannon
   module Base
-    FUNCTIONS = %w{env environment config logger}
+    FUNCTIONS = %w{env environment}
 
     def self.included(base)
       FUNCTIONS.each { |function| base.send(:module_function, function) }
@@ -12,14 +12,6 @@ module Cannon
         env_string.singleton_class.send(:define_method, "#{env_string}?") { true }
         env_string
       end
-    end
-
-    def config
-      @config ||= Config.new
-    end
-
-    def logger
-      config.logger
     end
 
     def environment(*environments)

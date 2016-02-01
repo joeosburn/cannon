@@ -79,9 +79,9 @@ private
   end
 
   def create_cannon_app
-    Cannon.config.log_level = :error
-    Cannon.config.cookies.secret = 'test'
     app = Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1')
+    app.runtime.config.log_level = :error
+    app.runtime.config.cookies.secret = 'test'
     app
   end
 end

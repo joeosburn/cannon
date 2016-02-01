@@ -13,11 +13,11 @@ module Cannon
         return next_proc.call if request.handled?
 
         request.define_singleton_method(:cookies) do
-          @cookie_jar ||= CookieJar.new(http_cookie: request.http_cookie)
+          @cookie_jar ||= CookieJar.new(request.app, http_cookie: request.http_cookie)
         end
 
         request.define_singleton_method(:signed_cookies) do
-          @signed_cookie_jar ||= CookieJar.new(cookies: request.cookies.with_signatures, signed: true)
+          @signed_cookie_jar ||= CookieJar.new(request.app, cookies: request.cookies.with_signatures, signed: true)
         end
 
         next_proc.call
@@ -31,7 +31,8 @@ class CookieJar
 
   class EndOfString < Exception; end
 
-  def initialize(http_cookie: nil, cookies: nil, signed: false)
+  def initialize(app, http_cookie: nil, cookies: nil, signed: false)
+    @app = app
     @http_cookie = http_cookie
     @cookies = cookies
     @signed = signed

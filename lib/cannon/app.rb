@@ -4,20 +4,16 @@ module Cannon
   class AlreadyListening < StandardError; end
 
   class App
-    attr_reader :routes, :app_binding, :cache
+    attr_reader :routes, :app_binding
 
     def initialize(app_binding, port: nil, ip_address: nil, &block)
       @app_binding = app_binding
       @subapps = {}
       @routes = []
       @load_environment = block
-      @cache = {}
 
-      Cannon.config.port = port unless port.nil?
-      Cannon.config.ip_address = ip_address unless ip_address.nil?
-
-      define_cannon_root
-      define_cannon_cache
+      runtime.config.port = port unless port.nil?
+      runtime.config.ip_address = ip_address unless ip_address.nil?
     end
 
     %w{get post put patch delete head all}.each do |http_method|
@@ -28,9 +24,10 @@ module Cannon
 
     def mount(app, at:)
       @subapps[at] = app
+      app.mount_on(self)
     end
 
-    def listen(port: Cannon.config.port, ip_address: Cannon.config.ip_address, async: false)
+    def listen(port: runtime.config.port, ip_address: runtime.config.ip_address, async: false)
       cannon_app = self
 
       if ENV['CONSOLE']
@@ -43,14 +40,16 @@ module Cannon
 
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
-      $LOAD_PATH << Cannon.root
-      reload_environment unless Cannon.config.reload_on_request
+      $LOAD_PATH << runtime.root
+      reload_environment unless runtime.config.reload_on_request
 
       server_block = ->(notifier) do
         EventMachine::run {
-          server = EventMachine::start_server(ip_address, port, Cannon::Handler)
+          server = EventMachine::start_server(ip_address, port, Cannon::Handler) do |handler|
+            handler.app = self
+          end
           notifier << server unless notifier.nil? # notify the calling thread that the server started if async
-          Cannon.logger.info "Cannon listening on port #{port}..."
+          logger.info "Cannon listening on port #{port}..."
         }
       end
 
@@ -71,7 +70,7 @@ module Cannon
       @server_thread.kill unless @server_thread.stop?
       Thread.abort_on_exception = false
       @server_thread = nil
-      Cannon.logger.info "Cannon no longer listening"
+      logger.info "Cannon no longer listening"
     end
 
     def reload_environment
@@ -79,7 +78,23 @@ module Cannon
     end
 
     def config
-      @config ||= AppConfig.new
+      @config ||= Config.new
+    end
+
+    def mount_on(app)
+      @mounted_on = app
+    end
+
+    def runtime
+      @mounted_on&.runtime || (@runtime ||= Runtime.new(@app_binding))
+    end
+
+    def cache
+      runtime.cache
+    end
+
+    def logger
+      runtime.logger
     end
 
     def handle(request, response)
@@ -120,25 +135,6 @@ module Cannon
       route = Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
       routes << route
       extra_router(route)
-    end
-
-    def define_cannon_root
-      cannon_method(:root, @app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
-    end
-
-    def define_cannon_cache
-      cannon_method(:cache, self.cache)
-    end
-
-    def define_cannon_logger
-      app = self
-      Cannon.send(:define_method, :logger, -> { app.config.logger })
-      Cannon.send(:module_function, :logger)
-    end
-
-    def cannon_method(name, value)
-      Cannon.send(:define_method, name.to_sym, -> { value })
-      Cannon.send(:module_function, name.to_sym)
     end
 
     def extra_router(route)

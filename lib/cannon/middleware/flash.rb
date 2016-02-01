@@ -9,7 +9,7 @@ module Cannon
         return next_proc.call if request.handled?
 
         request.define_singleton_method(:flash) do
-          @flash ||= Cannon::Flash.new(cookie_jar: request.signed_cookies)
+          @flash ||= Cannon::Flash.new(request.app, cookie_jar: request.signed_cookies)
         end
 
         next_proc.call
@@ -19,7 +19,7 @@ module Cannon
 end
 
 class Cannon::Flash < Cannon::Session
-  def initialize(cookie_jar:)
+  def initialize(app, cookie_jar:)
     super
     @flash = read_cookie
     @session_cookie = {}

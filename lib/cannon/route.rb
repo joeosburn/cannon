@@ -34,8 +34,8 @@ module Cannon
         begin
           @route_action.run(request, response, finish_proc)
         rescue => error
-          Cannon.logger.error error.message
-          Cannon.logger.error error.backtrace.join("\n")
+          @app.logger.error error.message
+          @app.logger.error error.backtrace.join("\n")
           response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
           finish_proc.call
         end

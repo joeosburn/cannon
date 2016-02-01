@@ -4,8 +4,8 @@ module Signature
   class CookieSecretNotSet < StandardError; end
 
   def signature(value)
-    raise CookieSecretNotSet, 'Set config.cookies.secret to use signed cookies' if Cannon.config.cookies.secret.nil?
-    OpenSSL::HMAC.hexdigest(digest, Cannon.config.cookies.secret, value)
+    raise CookieSecretNotSet, 'Set config.cookies.secret to use signed cookies' if @app.runtime.config.cookies.secret.nil?
+    OpenSSL::HMAC.hexdigest(digest, @app.runtime.config.cookies.secret, value)
   end
 
   def digest

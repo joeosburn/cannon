@@ -68,7 +68,7 @@ module Cannon
 
     def finish
       flush unless flushed?
-      benchmark_request(@request) if Cannon.config.benchmark_requests
+      benchmark_request(@request) if @app.runtime.config.benchmark_requests
     end
 
     def flushed?
@@ -124,7 +124,7 @@ module Cannon
   private
 
     def benchmark_request(request)
-      Cannon.logger.debug "Response took #{time_ago_in_ms(request.start_time)}ms"
+      @app.logger.debug "Response took #{time_ago_in_ms(request.start_time)}ms"
     end
 
     def time_ago_in_ms(time_ago)
