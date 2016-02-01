@@ -27,7 +27,7 @@ private
 end
 
 module Cannon::Test
-  PORT = 5031
+  DEFAULT_PORT = 5031
 
   def cannon_app
     @cannon_app ||= create_cannon_app
@@ -41,8 +41,8 @@ module Cannon::Test
     delete: :post,
     head:   :query,
   }.each do |http_method, params_type|
-    define_method(http_method) do |path, params = {}|
-      http_request(path, Net::HTTP.const_get(http_method.capitalize, false), params_type => params)
+    define_method(http_method) do |path, port: DEFAULT_PORT, **params|
+      http_request(path, Net::HTTP.const_get(http_method.capitalize, false), :port => port, params_type => params)
     end
   end
 
@@ -60,8 +60,8 @@ module Cannon::Test
 
 private
 
-  def http_request(path, request_class, post: nil, query: nil)
-    uri = URI("http://127.0.0.1:#{PORT}#{path}")
+  def http_request(path, request_class, port:, post: nil, query: nil)
+    uri = URI("http://127.0.0.1:#{port}#{path}")
     uri.query = URI.encode_www_form(query) unless query.nil?
     req = request_class.new(uri)
     req.set_form_data(post) unless post.nil?
@@ -81,7 +81,7 @@ private
   def create_cannon_app
     Cannon.config.log_level = :error
     Cannon.config.cookies.secret = 'test'
-    app = Cannon::App.new(binding, port: PORT, ip_address: '127.0.0.1')
+    app = Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1')
     app
   end
 end
