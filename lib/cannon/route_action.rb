@@ -13,10 +13,10 @@ class RouteAction
   end
 
   attr_writer :callback
-  attr_reader :action, :app
+  attr_reader :action, :app, :route
 
-  def initialize(app, action:, callback:)
-    @app, @action, @callback = app, action, callback
+  def initialize(app, action:, route:, callback:)
+    @app, @action, @callback, @route = app, action, callback, route
   end
 
   def last_action

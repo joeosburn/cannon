@@ -17,8 +17,13 @@ module Cannon
     end
 
     %w{get post put patch delete head all}.each do |http_method|
-      define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, &block|
-        add_route(path, method: http_method.to_sym, action: action, actions: actions, redirect: redirect, &block)
+      define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, cache: true, &block|
+        add_route(path,
+          method: http_method.to_sym,
+          actions: [block, action, actions].flatten.compact,
+          redirect: redirect,
+          cache: cache
+        )
       end
     end
 
@@ -131,8 +136,8 @@ module Cannon
       build_middleware_runner(middleware, callback: middleware_runner)
     end
 
-    def add_route(path, method:, action:, actions:, redirect:, &block)
-      route = Route.new(self, method: method, path: path, actions: [block, action, actions].flatten.compact, redirect: redirect)
+    def add_route(path, method:, actions:, redirect:, cache:, &block)
+      route = Route.new(path, app: self, method: method, actions: actions, redirect: redirect, cache: cache)
       routes << route
       extra_router(route)
     end

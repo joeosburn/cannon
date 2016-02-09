@@ -25,6 +25,8 @@ RSpec.describe 'Action caching', :cannon_app do
 
     cannon_app.all('/any', action: 'simple')
 
+    cannon_app.get('/nocache', action: 'simple', cache: false)
+
     cannon_app.listen(async: true)
   end
 
@@ -56,6 +58,17 @@ RSpec.describe 'Action caching', :cannon_app do
       expect(response.code).to eq(200)
       get('/inline')
       expect(response.body).to eq('inline response')
+      expect(response.code).to eq(200)
+    end
+
+    it 'can have caching disabled' do
+      expect(Object).to receive(:called).with('simple').exactly(2).times
+
+      get('/nocache')
+      expect(response.body).to eq('simple response')
+      expect(response.code).to eq(200)
+      get('/nocache')
+      expect(response.body).to eq('simple response')
       expect(response.code).to eq(200)
     end
   end

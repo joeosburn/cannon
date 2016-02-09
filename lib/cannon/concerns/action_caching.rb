@@ -1,6 +1,8 @@
 module ActionCaching
 private
   def run_action(request, response, next_proc)
+    return super unless route.cache?
+
     if request.method == 'GET' && !action.is_a?(Proc) && action_cached?(request)
       run_action_cache(request, response)
       next_proc.call
