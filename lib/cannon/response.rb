@@ -56,7 +56,7 @@ module Cannon
 
     def initialize(http_server, app, request: nil)
       @app = app
-      @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
+      @delegated_response = RecordedDelegatedResponse.new(http_server)
       @flushed = false
       @headers = {}
       @request = request
@@ -150,6 +150,41 @@ module Cannon
       else
         status.to_s
       end
+    end
+  end
+
+  class RecordedDelegatedResponse
+    def initialize(http_server)
+      @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
+      @recording = false
+    end
+
+    def start_recording
+      method_stack.clear
+      @recording = true
+    end
+
+    def stop_recording
+      @recording = false
+    end
+
+    def recording?
+      @recording
+    end
+
+    def recording
+      method_stack
+    end
+
+    def method_missing(sym, *args, &block)
+      method_stack << [sym, args, block] if recording?
+      @delegated_response.send(sym, *args, &block)
+    end
+
+  private
+
+    def method_stack
+      @method_stack ||= []
     end
   end
 end

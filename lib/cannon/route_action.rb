@@ -1,5 +1,6 @@
 class RouteAction
   include EventMachine::Deferrable
+  prepend ActionCaching
 
   class << self
     def controller(name, app)
