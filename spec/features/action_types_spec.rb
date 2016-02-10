@@ -55,7 +55,7 @@ class World
   end
 end
 
-RSpec.describe 'Cannon app', :cannon_app do
+RSpec.describe 'Action types', :cannon_app do
   before(:each) do
     cannon_app.get('/1-2-simple', actions: ['first', 'second'])
     cannon_app.get('/hi', action: 'hi')
