@@ -5,11 +5,12 @@ module Cannon
     extend Forwardable
     include Views
 
-    attr_reader :delegated_response, :headers
+    attr_reader :delegated_response
     attr_accessor :status
 
     delegate :content => :delegated_response
     delegate :content= => :delegated_response
+    delegate :headers => :delegated_response
 
     HTTP_STATUS = {
       continue:                      100,
@@ -58,7 +59,6 @@ module Cannon
       @app = app
       @delegated_response = RecordedDelegatedResponse.new(http_server)
       @flushed = false
-      @headers = {}
       @request = request
 
       initialize_views
@@ -85,14 +85,14 @@ module Cannon
     def flush
       unless flushed?
         set_cookie_headers
-        delegated_response.headers = self.headers
+        delegated_response.send_headers
         delegated_response.send_response
         @flushed = true
       end
     end
 
     def header(key, value)
-      headers[key] = value
+      delegated_response.header(key, value)
     end
 
     def location_header(location)
@@ -138,7 +138,7 @@ module Cannon
 
       return unless cookie_values.size > 0
 
-      cookie_headers = (headers['Set-Cookie'] = [])
+      cookie_headers = (delegated_response.headers['Set-Cookie'] = [])
       cookie_values.each { |cookie_value| cookie_headers << cookie_value }
     end
 
@@ -154,9 +154,12 @@ module Cannon
   end
 
   class RecordedDelegatedResponse
+    attr_reader :headers
+
     def initialize(http_server)
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @recording = false
+      @headers = {}
     end
 
     def start_recording
@@ -174,6 +177,15 @@ module Cannon
 
     def recording
       method_stack
+    end
+
+    def header(key, value)
+      method_stack << [:header, [key, value], nil]
+      @headers[key] = value
+    end
+
+    def send_headers
+      @delegated_response.headers = headers
     end
 
     def method_missing(sym, *args, &block)

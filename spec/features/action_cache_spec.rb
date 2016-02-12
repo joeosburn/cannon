@@ -7,6 +7,18 @@ def simple(request, response)
   response.send('simple response')
 end
 
+def respond_201(request, response)
+  Object.called('send 201')
+  response.send('201 created', status: :created)
+end
+
+def headers(request, response)
+  Object.called('headers')
+  response.header('A-Website', 'http://www.google.com')
+  response.header('B-Header', 'http://www.drudgereport.com')
+  response.send('Headers')
+end
+
 class World
   def home(request, response)
     Object.called('home')
@@ -26,6 +38,9 @@ RSpec.describe 'Action caching', :cannon_app do
     cannon_app.all('/any', action: 'simple')
 
     cannon_app.get('/nocache', action: 'simple', cache: false)
+
+    cannon_app.get('/create', action: 'respond_201')
+    cannon_app.get('/headers', action: 'headers')
 
     cannon_app.listen(async: true)
   end
@@ -70,6 +85,30 @@ RSpec.describe 'Action caching', :cannon_app do
       get('/nocache')
       expect(response.body).to eq('simple response')
       expect(response.code).to eq(200)
+    end
+
+    it 'caches response codes' do
+      expect(Object).to receive(:called).with('send 201').exactly(1).times
+
+      get('/create')
+      expect(response.body).to eq('201 created')
+      expect(response.code).to eq(201)
+      get('/create')
+      expect(response.body).to eq('201 created')
+      expect(response.code).to eq(201)
+    end
+
+    it 'caches custom headers' do
+      expect(Object).to receive(:called).with('headers').exactly(1).times
+
+      get('/headers')
+      expect(response.body).to eq('Headers')
+      expect(response.headers['a-website']).to eq('http://www.google.com')
+      expect(response.headers['b-header']).to eq('http://www.drudgereport.com')
+      get('/headers')
+      expect(response.body).to eq('Headers')
+      expect(response.headers['a-website']).to eq('http://www.google.com')
+      expect(response.headers['b-header']).to eq('http://www.drudgereport.com')
     end
   end
 
