@@ -19,6 +19,13 @@ def headers(request, response)
   response.send('Headers')
 end
 
+def cookies(request, response)
+  Object.called('cookies')
+  request.cookies['username'] = {value: '"Luther;Martin"', expires: Time.new(2017, 10, 31, 10, 30, 05), httponly: true}
+  request.cookies['password'] = {value: 'by=faith', max_age: 400}
+  response.send('Cookies')
+end
+
 class World
   def home(request, response)
     Object.called('home')
@@ -41,6 +48,7 @@ RSpec.describe 'Action caching', :cannon_app do
 
     cannon_app.get('/create', action: 'respond_201')
     cannon_app.get('/headers', action: 'headers')
+    cannon_app.get('/cookies', action: 'cookies')
 
     cannon_app.listen(async: true)
   end
@@ -109,6 +117,22 @@ RSpec.describe 'Action caching', :cannon_app do
       expect(response.body).to eq('Headers')
       expect(response.headers['a-website']).to eq('http://www.google.com')
       expect(response.headers['b-header']).to eq('http://www.drudgereport.com')
+    end
+
+    it 'caches cookies' do
+      expect(Object).to receive(:called).with('cookies').exactly(1).times
+
+      get('/cookies')
+      expect(response.body).to eq('Cookies')
+      expect(cookies['username'].httponly).to be true
+      expect(cookies['username'].expires).to eq(Time.new(2017, 10, 31, 10, 30, 05))
+      expect(cookies['password'].max_age).to eq(400)
+      jar.clear
+      get('/cookies')
+      expect(response.body).to eq('Cookies')
+      expect(cookies['username'].httponly).to be true
+      expect(cookies['username'].expires).to eq(Time.new(2017, 10, 31, 10, 30, 05))
+      expect(cookies['password'].max_age).to eq(400)
     end
   end
 

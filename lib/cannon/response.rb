@@ -11,6 +11,7 @@ module Cannon
     delegate :content => :delegated_response
     delegate :content= => :delegated_response
     delegate :headers => :delegated_response
+    delegate :cookies => :delegated_response
 
     HTTP_STATUS = {
       continue:                      100,
@@ -78,7 +79,6 @@ module Cannon
 
     def flush
       unless flushed?
-        set_cookie_headers
         delegated_response.send_headers
         delegated_response.send_response
         @flushed = true
@@ -107,17 +107,6 @@ module Cannon
 
   private
 
-    def set_cookie_headers
-      cookie_values = []
-      cookie_values += @request.cookies.assigned_cookie_values if @request.respond_to?(:cookies)
-      cookie_values += @request.signed_cookies.assigned_cookie_values if @request.respond_to?(:signed_cookies)
-
-      return unless cookie_values.size > 0
-
-      cookie_headers = (delegated_response.headers['Set-Cookie'] = [])
-      cookie_values.each { |cookie_value| cookie_headers << cookie_value }
-    end
-
     def converted_status(status)
       if status.is_a?(Symbol)
         HTTP_STATUS[status] || status.to_s
@@ -136,6 +125,7 @@ module Cannon
       @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
       @recording = false
       @headers = {}
+      @cookies = {}
     end
 
     def start_recording
@@ -158,6 +148,12 @@ module Cannon
     def header(key, value)
       method_stack << [:header, [key, value], nil]
       @headers[key] = value
+    end
+
+    def cookies(key, value)
+      method_stack << [:cookies, [key, value], nil]
+      @cookies[key] = value
+      header('Set-Cookie', @cookies.collect { |k, v| v })
     end
 
     def send_headers
