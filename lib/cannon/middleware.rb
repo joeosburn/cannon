@@ -32,7 +32,7 @@ module Cannon
         if @callback
           @callback.run(request, response)
         elsif request.handled?
-          response.finish
+          request.finish
         end
       end
     end

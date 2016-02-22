@@ -41,7 +41,7 @@ module Cannon
         rescue => error
           @app.logger.error error.message
           @app.logger.error error.backtrace.join("\n")
-          response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+          request.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
           finish_proc.call
         end
       end

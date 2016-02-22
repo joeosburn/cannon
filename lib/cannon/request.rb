@@ -5,9 +5,9 @@ module Cannon
     attr_accessor :protocol, :method, :http_cookie, :content_type, :path, :uri, :query_string, :post_content, :headers,
                   :start_time
 
-    attr_reader :app
+    attr_reader :app, :response
 
-    def initialize(http_server, app)
+    def initialize(http_server, app, response:)
       self.protocol = http_server.instance_variable_get('@http_protocol')
       self.method = http_server.instance_variable_get('@http_request_method')
       self.http_cookie = http_server.instance_variable_get('@http_cookie')
@@ -19,8 +19,14 @@ module Cannon
       self.headers = http_server.instance_variable_get('@http_headers')
       self.start_time = Time.now
       @app = app
+      @response = response
 
       @handled = false
+    end
+
+    def finish
+      @response.flush unless @response.flushed?
+      benchmark_request if @app.runtime.config.benchmark_requests
     end
 
     def params
@@ -35,7 +41,25 @@ module Cannon
       @handled = true
     end
 
+    def not_found
+      @response.send('Not Found', status: :not_found)
+    end
+
+    def internal_server_error(title:, content:)
+      html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
+      @response.header('Content-Type', 'text/html')
+      @response.send(html, status: :internal_server_error)
+    end
+
   private
+
+    def benchmark_request
+      @app.logger.debug "Response took #{time_ago_in_ms(start_time)}ms"
+    end
+
+    def time_ago_in_ms(time_ago)
+      Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
+    end
 
     def parse_params
       case method.downcase

@@ -55,20 +55,14 @@ module Cannon
       http_version_not_supported:    505,
     }
 
-    def initialize(http_server, app, request: nil)
+    def initialize(http_server, app)
       @app = app
       @delegated_response = RecordedDelegatedResponse.new(http_server)
       @flushed = false
-      @request = request
 
       initialize_views
 
       self.status = :ok
-    end
-
-    def finish
-      flush unless flushed?
-      benchmark_request(@request) if @app.runtime.config.benchmark_requests
     end
 
     def flushed?
@@ -111,25 +105,7 @@ module Cannon
       flush
     end
 
-    def not_found
-      send('Not Found', status: :not_found)
-    end
-
-    def internal_server_error(title:, content:)
-      html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
-      header('Content-Type', 'text/html')
-      send(html, status: :internal_server_error)
-    end
-
   private
-
-    def benchmark_request(request)
-      @app.logger.debug "Response took #{time_ago_in_ms(request.start_time)}ms"
-    end
-
-    def time_ago_in_ms(time_ago)
-      Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
-    end
 
     def set_cookie_headers
       cookie_values = []
