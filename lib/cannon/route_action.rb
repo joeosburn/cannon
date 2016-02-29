@@ -1,6 +1,5 @@
 class RouteAction
   include EventMachine::Deferrable
-  prepend ActionCaching
 
   class << self
     def controller(name, app)
@@ -34,10 +33,12 @@ class RouteAction
       end
     end
 
-    run_action(request, response, next_proc)
+    if route.cache?
+      app.runtime.action_cache.handle_route_action(self, request: request, response: response, next_proc: next_proc)
+    else
+      run_action(request, response, next_proc)
+    end
   end
-
-private
 
   def run_action(request, response, next_proc)
     if action.is_a? Proc
@@ -48,6 +49,8 @@ private
       run_bound_action(request, response, next_proc)
     end
   end
+
+private
 
   def run_inline_action(request, response, next_proc)
     app.logger.debug 'Action: Inline'
