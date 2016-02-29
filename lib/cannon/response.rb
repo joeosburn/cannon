@@ -5,11 +5,13 @@ module Cannon
     extend Forwardable
     include Views
 
-    attr_reader :delegated_response, :headers
+    attr_reader :delegated_response
     attr_accessor :status
 
     delegate :content => :delegated_response
     delegate :content= => :delegated_response
+    delegate :headers => :delegated_response
+    delegate :cookies => :delegated_response
 
     HTTP_STATUS = {
       continue:                      100,
@@ -54,21 +56,14 @@ module Cannon
       http_version_not_supported:    505,
     }
 
-    def initialize(http_server, app, request: nil)
+    def initialize(http_server, app)
       @app = app
-      @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
+      @delegated_response = RecordedDelegatedResponse.new(http_server)
       @flushed = false
-      @headers = {}
-      @request = request
 
       initialize_views
 
       self.status = :ok
-    end
-
-    def finish
-      flush unless flushed?
-      benchmark_request(@request) if @app.runtime.config.benchmark_requests
     end
 
     def flushed?
@@ -84,15 +79,14 @@ module Cannon
 
     def flush
       unless flushed?
-        set_cookie_headers
-        delegated_response.headers = self.headers
+        delegated_response.send_headers
         delegated_response.send_response
         @flushed = true
       end
     end
 
     def header(key, value)
-      headers[key] = value
+      delegated_response.header(key, value)
     end
 
     def location_header(location)
@@ -111,36 +105,7 @@ module Cannon
       flush
     end
 
-    def not_found
-      send('Not Found', status: :not_found)
-    end
-
-    def internal_server_error(title:, content:)
-      html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
-      header('Content-Type', 'text/html')
-      send(html, status: :internal_server_error)
-    end
-
   private
-
-    def benchmark_request(request)
-      @app.logger.debug "Response took #{time_ago_in_ms(request.start_time)}ms"
-    end
-
-    def time_ago_in_ms(time_ago)
-      Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
-    end
-
-    def set_cookie_headers
-      cookie_values = []
-      cookie_values += @request.cookies.assigned_cookie_values if @request.respond_to?(:cookies)
-      cookie_values += @request.signed_cookies.assigned_cookie_values if @request.respond_to?(:signed_cookies)
-
-      return unless cookie_values.size > 0
-
-      cookie_headers = (headers['Set-Cookie'] = [])
-      cookie_values.each { |cookie_value| cookie_headers << cookie_value }
-    end
 
     def converted_status(status)
       if status.is_a?(Symbol)
@@ -150,6 +115,60 @@ module Cannon
       else
         status.to_s
       end
+    end
+  end
+
+  class RecordedDelegatedResponse
+    attr_reader :headers
+
+    def initialize(http_server)
+      @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
+      @recording = false
+      @headers = {}
+      @cookies = {}
+    end
+
+    def start_recording
+      method_stack.clear
+      @recording = true
+    end
+
+    def stop_recording
+      @recording = false
+    end
+
+    def recording?
+      @recording
+    end
+
+    def recording
+      method_stack
+    end
+
+    def header(key, value)
+      method_stack << [:header, [key, value], nil]
+      @headers[key] = value
+    end
+
+    def cookies(key, value)
+      method_stack << [:cookies, [key, value], nil]
+      @cookies[key] = value
+      header('Set-Cookie', @cookies.collect { |k, v| v })
+    end
+
+    def send_headers
+      @delegated_response.headers = headers
+    end
+
+    def method_missing(sym, *args, &block)
+      method_stack << [sym, args, block] if recording?
+      @delegated_response.send(sym, *args, &block)
+    end
+
+  private
+
+    def method_stack
+      @method_stack ||= []
     end
   end
 end

@@ -13,6 +13,10 @@ module Cannon
       @cache
     end
 
+    def action_cache
+      @action_cache ||= ActionCache.new(cache: cache)
+    end
+
     def logger
       config.logger
     end

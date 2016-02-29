@@ -13,11 +13,11 @@ module Cannon
         return next_proc.call if request.handled?
 
         request.define_singleton_method(:cookies) do
-          @cookie_jar ||= CookieJar.new(request.app, http_cookie: request.http_cookie)
+          @cookie_jar ||= CookieJar.new(request)
         end
 
         request.define_singleton_method(:signed_cookies) do
-          @signed_cookie_jar ||= CookieJar.new(request.app, cookies: request.cookies.with_signatures, signed: true)
+          @signed_cookie_jar ||= CookieJar.new(request, cookies: request.cookies.with_signatures, signed: true)
         end
 
         next_proc.call
@@ -31,9 +31,10 @@ class CookieJar
 
   class EndOfString < Exception; end
 
-  def initialize(app, http_cookie: nil, cookies: nil, signed: false)
-    @app = app
-    @http_cookie = http_cookie
+  def initialize(request, cookies: nil, signed: false)
+    @request = request
+    @app = request.app
+    @http_cookie = request.http_cookie if cookies.nil?
     @cookies = cookies
     @signed = signed
     @assigned_cookies = {}
@@ -59,10 +60,6 @@ class CookieJar
     cookies.select { |k, v| v.include? 'signature' }
   end
 
-  def assigned_cookie_values
-    @assigned_cookies.map { |k, v| build_cookie_value(k, v) }
-  end
-
 private
 
   def get_assigned_cookie(cookie_name)
@@ -81,6 +78,7 @@ private
   def assign_cookie(cookie, cookie_options)
     cookie_options[:signed] = @signed
     @assigned_cookies[cookie] = cookie_options
+    @request.response.cookies(cookie, build_cookie_value(cookie, cookie_options))
   end
 
   def build_cookie_value(name, cookie_options)

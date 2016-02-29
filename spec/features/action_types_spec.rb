@@ -62,7 +62,7 @@ RSpec.describe 'Action types', :cannon_app do
     cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])
 
     cannon_app.get('/hello', action: 'World#hello')
-    cannon_app.get('/count', action: 'World#count')
+    cannon_app.get('/count', action: 'World#count', cache: false)
     cannon_app.get('/1-2-controller', actions: ['World#first', 'World#second'])
 
     cannon_app.get('/inline') do |request, response|

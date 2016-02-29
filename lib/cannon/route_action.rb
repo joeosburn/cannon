@@ -12,9 +12,10 @@ class RouteAction
   end
 
   attr_writer :callback
+  attr_reader :action, :app, :route
 
-  def initialize(app, action:, callback:)
-    @app, @action, @callback = app, action, callback
+  def initialize(app, action:, route:, callback:)
+    @app, @action, @callback, @route = app, action, callback, route
   end
 
   def last_action
@@ -32,9 +33,17 @@ class RouteAction
       end
     end
 
-    if @action.is_a? Proc
+    if route.cache?
+      app.runtime.action_cache.handle_route_action(self, request: request, response: response, next_proc: next_proc)
+    else
+      run_action(request, response, next_proc)
+    end
+  end
+
+  def run_action(request, response, next_proc)
+    if action.is_a? Proc
       run_inline_action(request, response, next_proc)
-    elsif @action.include? '#'
+    elsif action.include? '#'
       run_controller_action(request, response, next_proc)
     else
       run_bound_action(request, response, next_proc)
@@ -44,38 +53,38 @@ class RouteAction
 private
 
   def run_inline_action(request, response, next_proc)
-    @app.logger.debug 'Action: Inline'
+    app.logger.debug 'Action: Inline'
 
-    if @action.arity == 2
-      @action.call(request, response)
+    if action.arity == 2
+      action.call(request, response)
       next_proc.call
     else
-      @action.call(request, response, next_proc)
+      action.call(request, response, next_proc)
     end
   end
 
   def run_controller_action(request, response, next_proc)
-    controller, action = @action.split('#')
+    controller, action_name = action.split('#')
 
-    @app.logger.debug "Controller: #{controller}, Action: #{action}"
+    app.logger.debug "Controller: #{controller}, Action: #{action_name}"
 
-    controller_instance = RouteAction.controller(controller, @app)
-    if controller_instance.method(action).arity == 2
-      controller_instance.send(action, request, response)
+    controller_instance = RouteAction.controller(controller, app)
+    if controller_instance.method(action_name).arity == 2
+      controller_instance.send(action_name, request, response)
       next_proc.call
     else
-      controller_instance.send(action, request, response, next_proc)
+      controller_instance.send(action_name, request, response, next_proc)
     end
   end
 
   def run_bound_action(request, response, next_proc)
-    @app.logger.debug "Action: #{@action}"
+    app.logger.debug "Action: #{action}"
 
-    if @app.app_binding.method(@action).arity == 2
-      @app.app_binding.send(@action, request, response)
+    if app.app_binding.method(action).arity == 2
+      app.app_binding.send(action, request, response)
       next_proc.call
     else
-      @app.app_binding.send(@action, request, response, next_proc)
+      app.app_binding.send(action, request, response, next_proc)
     end
   end
 
