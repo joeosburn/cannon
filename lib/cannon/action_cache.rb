@@ -27,6 +27,10 @@ module Cannon
       @cache.include? cache_key(action)
     end
 
+    def clear
+      @cache.reject! { |k, v| k =~ /^action_cache_/ }
+    end
+
   private
 
     def run_action_cache(request, response, route_action:)
