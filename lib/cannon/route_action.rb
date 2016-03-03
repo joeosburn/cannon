@@ -33,7 +33,7 @@ class RouteAction
       end
     end
 
-    if route.cache?
+    if route.cache? && app.runtime.config.cache_app
       app.runtime.action_cache.handle_route_action(self, request: request, response: response, next_proc: next_proc)
     else
       run_action(request, response, next_proc)
