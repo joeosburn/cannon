@@ -25,10 +25,10 @@ private
   end
 
   def outdated_cache?
-    if @app.runtime.config.reload_on_request
-      @last_path_signature != current_path_signature
-    else
+    if @app.runtime.config.cache_app
       @last_path_signature.nil?
+    else
+      @last_path_signature != current_path_signature
     end
   end
 

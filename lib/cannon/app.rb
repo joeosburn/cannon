@@ -46,7 +46,7 @@ module Cannon
       Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << runtime.root
-      reload_environment unless runtime.config.reload_on_request
+      reload_environment if runtime.config.cache_app # load app for the first time app is cached
 
       server_block = ->(notifier) do
         EventMachine::run {

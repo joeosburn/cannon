@@ -28,7 +28,7 @@ module Cannon
     class UnknownLogLevel < StandardError; end
 
     class Config
-      attr_accessor :reload_on_request, :benchmark_requests, :port, :ip_address
+      attr_accessor :cache_app, :benchmark_requests, :port, :ip_address
       attr_reader :logger, :log_level
 
       LOG_LEVELS = {
@@ -43,7 +43,7 @@ module Cannon
       def initialize
         self.ip_address = '127.0.0.1'
         self.port = 5030
-        self.reload_on_request = false
+        self.cache_app = true
         self.benchmark_requests = true
         @log_level = :info
         self.logger = Logger.new(STDOUT)
