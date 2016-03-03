@@ -8,7 +8,7 @@ module Cannon
       response = Response.new(self, app)
       request = Request.new(self, app, response: response)
 
-      app.reload_environment if app.runtime.config.reload_on_request
+      app.reload_environment unless app.runtime.config.cache_app
 
       app.handle(request, response)
 
