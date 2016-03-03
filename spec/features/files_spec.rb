@@ -2,8 +2,6 @@ require 'spec_helper'
 
 RSpec.describe 'Files', :cannon_app do
   before(:each) do
-    cannon_app.config.public_path = '../fixtures/public'
-
     cannon_app.listen(async: true)
   end
 
