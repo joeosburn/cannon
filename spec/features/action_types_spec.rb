@@ -14,8 +14,7 @@ end
 
 def first(request, response, next_proc)
   EM.defer(
-    -> { sleep 0.1 },
-    ->(result) do
+    -> do
       response.send('first')
       next_proc.call
     end
@@ -42,8 +41,7 @@ class World
 
   def first(request, response, next_proc)
     EM.defer(
-      -> { sleep 0.1 },
-      ->(result) do
+      -> do
         response.send('first')
         next_proc.call
       end
@@ -79,8 +77,7 @@ RSpec.describe 'Action types', :cannon_app do
 
     cannon_app.get('/1-2-inline') do |request, response, next_proc|
       EM.defer(
-        -> { sleep 0.1 },
-        ->(result) do
+        -> do
           response.send('first')
           next_proc.call
         end
