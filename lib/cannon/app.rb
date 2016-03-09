@@ -1,4 +1,5 @@
 require 'pry'
+require 'lspace/eventmachine'
 
 module Cannon
   class AlreadyListening < StandardError; end
@@ -51,6 +52,17 @@ module Cannon
           end
           notifier << server unless notifier.nil? # notify the calling thread that the server started if async
           logger.info "Cannon listening on port #{port}..."
+
+          LSpace.rescue Exception do |error|
+            if LSpace[:request] && LSpace[:app]
+              LSpace[:app].logger.error error.message
+              LSpace[:app].logger.error error.backtrace.join("\n")
+              LSpace[:request].internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+              LSpace[:request].finish
+            else
+              raise error
+            end
+          end
         }
       end
 

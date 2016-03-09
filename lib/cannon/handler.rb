@@ -10,11 +10,14 @@ module Cannon
 
       app.reload_environment unless app.runtime.config.cache_app
 
-      app.handle(request, response)
-
-      unless request.handled?
-        request.not_found
-        request.finish
+      LSpace.with(request: request, response: response, app: app) do
+        EM.defer(lambda do
+          app.handle(request, response)
+          unless request.handled?
+            request.not_found
+            request.finish
+          end
+        end)
       end
     end
   end

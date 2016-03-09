@@ -36,14 +36,7 @@ module Cannon
       if redirect
         response.permanent_redirect(redirect)
       elsif @route_action
-        begin
-          @route_action.run(request, response, finish_proc)
-        rescue => error
-          @app.logger.error error.message
-          @app.logger.error error.backtrace.join("\n")
-          request.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
-          finish_proc.call
-        end
+        @route_action.run(request, response, finish_proc)
       end
     end
 
