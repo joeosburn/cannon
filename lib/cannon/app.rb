@@ -33,8 +33,6 @@ module Cannon
     end
 
     def listen(port: runtime.config.port, ip_address: runtime.config.ip_address, async: false)
-      cannon_app = self
-
       if ENV['CONSOLE']
         command_set = Pry::CommandSet.new {}
         Pry.start binding, commands: command_set
@@ -42,8 +40,6 @@ module Cannon
       end
 
       raise AlreadyListening, 'App is currently listening' unless @server_thread.nil?
-
-      Cannon::Handler.define_singleton_method(:app) { cannon_app }
 
       $LOAD_PATH << runtime.root
       reload_environment if runtime.config.cache_app # load app for the first time app is cached
