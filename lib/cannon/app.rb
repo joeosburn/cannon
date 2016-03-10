@@ -55,10 +55,7 @@ module Cannon
 
           LSpace.rescue Exception do |error|
             if LSpace[:request] && LSpace[:app]
-              LSpace[:app].logger.error error.message
-              LSpace[:app].logger.error error.backtrace.join("\n")
-              LSpace[:request].internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
-              LSpace[:request].finish
+              LSpace[:app].handle_error(error, request: LSpace[:request])
             else
               raise error
             end
@@ -74,6 +71,13 @@ module Cannon
       else
         server_block.call(nil)
       end
+    end
+
+    def handle_error(error, request:)
+      logger.error error.message
+      logger.error error.backtrace.join("\n")
+      request.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+      request.finish
     end
 
     def stop
