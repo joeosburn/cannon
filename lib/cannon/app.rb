@@ -7,11 +7,10 @@ module Cannon
   class App
     attr_reader :routes, :app_binding
 
-    def initialize(app_binding, port: nil, ip_address: nil, &block)
+    def initialize(app_binding, port: nil, ip_address: nil)
       @app_binding = app_binding
       @subapps = {}
       @routes = []
-      @load_environment = block
 
       runtime.config.port = port unless port.nil?
       runtime.config.ip_address = ip_address unless ip_address.nil?
@@ -43,7 +42,6 @@ module Cannon
       raise AlreadyListening, 'App is currently listening' unless @server_thread.nil?
 
       $LOAD_PATH << runtime.root
-      reload_environment if runtime.config.cache_app # load app for the first time app is cached
 
       server_block = ->(notifier) do
         EventMachine::run {
@@ -90,8 +88,8 @@ module Cannon
       logger.info "Cannon no longer listening"
     end
 
-    def reload_environment
-      @load_environment.call unless @load_environment.nil?
+    def ensure_latest_app_loaded
+      $LOADED_FEATURES.each { |feature| load_file_if_changed_for_app(feature) }
     end
 
     def config
@@ -133,6 +131,21 @@ module Cannon
 
   private
 
+    def load_file_if_changed_for_app(file)
+      return unless file =~ /^#{runtime.root}/
+      mtime = File.mtime(file)
+      load_file(file, mtime: mtime) if file_mtimes[file] != mtime
+    end
+
+    def load_file(file, mtime:)
+      load file
+      file_mtimes[file] = mtime
+    end
+
+    def file_mtimes
+      @file_mtimes ||= {}
+    end
+
     def middleware_runner
       @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
     end
@@ -168,16 +181,6 @@ module Cannon
         @route.add_route_action(block)
         self
       end
-    end
-  end
-end
-
-module Kernel
-  def reload(lib)
-    if old = $LOADED_FEATURES.find{ |path| path=~/#{Regexp.escape lib}(\.rb)?\z/ }
-      load old
-    else
-      require lib
     end
   end
 end
