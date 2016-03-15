@@ -46,7 +46,8 @@ module Cannon
         self.cache_app = true
         self.benchmark_requests = true
         @log_level = :info
-        self.logger = Logger.new(STDOUT)
+        $stdout.sync = true
+        self.logger = Logger.new($stdout)
       end
 
       def logger=(value)
