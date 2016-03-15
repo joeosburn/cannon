@@ -72,6 +72,12 @@ module Cannon
         exit
       end
 
+      trap('TERM') do
+        puts 'Caught term signal; shutting down...'
+        stop
+        exit
+      end
+
       if async
         notification = Queue.new
         Thread.abort_on_exception = true
