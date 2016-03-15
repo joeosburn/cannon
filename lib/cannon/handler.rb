@@ -13,7 +13,7 @@ module Cannon
       LSpace.with(request: request, response: response, app: app) do
         begin
           app.handle(request, response)
-        rescue => error
+        rescue StandardError => error
           app.handle_error(error, request: request)
         ensure
           unless request.handled?

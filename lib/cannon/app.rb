@@ -51,7 +51,7 @@ module Cannon
           notifier << server unless notifier.nil? # notify the calling thread that the server started if async
           logger.info "Cannon listening on port #{port}..."
 
-          LSpace.rescue Exception do |error|
+          LSpace.rescue StandardError do |error|
             if LSpace[:request] && LSpace[:app]
               LSpace[:app].handle_error(error, request: LSpace[:request])
             else
@@ -59,6 +59,12 @@ module Cannon
             end
           end
         }
+      end
+
+      trap('INT') do
+        puts 'Caught interrupt; shutting down...'
+        stop
+        exit
       end
 
       if async
