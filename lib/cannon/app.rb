@@ -12,6 +12,11 @@ module Cannon
       @subapps = {}
       @routes = []
 
+      opts = @app_binding.eval('ARGV')
+      if index = opts.index('-p')
+        port ||= opts[index + 1]
+      end
+
       runtime.config.port = port unless port.nil?
       runtime.config.ip_address = ip_address unless ip_address.nil?
     end
