@@ -1,3 +1,5 @@
+require 'yaml'
+
 module Cannon
   class Runtime
     def initialize(app_binding)
@@ -22,7 +24,12 @@ module Cannon
     end
 
     def root
-      @root ||= @app_binding.eval('File.expand_path(File.dirname(__FILE__))')
+      @root ||= Pathname.new(@app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
+    end
+
+    def load_env(filename:)
+      values = YAML.load_file(root.join(filename).to_s)
+      values.each { |k, v| ENV[k.to_s] = v }
     end
 
     class UnknownLogLevel < StandardError; end
