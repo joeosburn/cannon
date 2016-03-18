@@ -13,7 +13,7 @@ RSpec.describe 'Configuration' do
     end
 
     it 'can be absolute', :cannon_app do
-      cannon_app.config.view_path = cannon_app.runtime.root + '/../fixtures/views'
+      cannon_app.config.view_path = cannon_app.runtime.root.to_s + '/../fixtures/views'
       cannon_app.get('/') do |request, response|
         response.view('test.html')
       end
@@ -32,7 +32,7 @@ RSpec.describe 'Configuration' do
     end
 
     it 'can be absolute', :cannon_app do
-      cannon_app.config.public_path = cannon_app.runtime.root + '/../fixtures/public'
+      cannon_app.config.public_path = cannon_app.runtime.root.to_s + '/../fixtures/public'
       cannon_app.listen(async: true)
       get '/background.jpg'
       expect(response.code).to be(200)

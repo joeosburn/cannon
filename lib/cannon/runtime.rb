@@ -22,7 +22,8 @@ module Cannon
     end
 
     def root
-      @root ||= @app_binding.eval('File.expand_path(File.dirname(__FILE__))')
+      @root ||= Pathname.new(@app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
+    end
     end
 
     class UnknownLogLevel < StandardError; end
