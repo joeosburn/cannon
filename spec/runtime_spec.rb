@@ -7,7 +7,7 @@ RSpec.describe Cannon::Runtime do
     it 'loads a yaml file into ENV' do
       expect(ENV['APP_CODE']).to be_nil
       expect(ENV['SAMPLE']).to be_nil
-      runtime.load_env(filename: 'fixtures/config/application.yml')
+      runtime.load_env(yaml_filename: 'fixtures/config/application.yml')
       expect(ENV['APP_CODE']).to eq('abc')
       expect(ENV['SAMPLE']).to eq('123')
     end

@@ -27,8 +27,8 @@ module Cannon
       @root ||= Pathname.new(@app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
     end
 
-    def load_env(filename:)
-      values = YAML.load_file(root.join(filename).to_s)
+    def load_env(yaml_filename:)
+      values = YAML.load_file(root.join(yaml_filename).to_s)
       values.each { |k, v| ENV[k.to_s] = v }
     end
 
