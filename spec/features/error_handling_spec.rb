@@ -7,13 +7,13 @@ RSpec.describe 'Error handling', :cannon_app do
     end
 
     cannon_app.get('/render-error') do |request, response|
-      response.view('render_error.html')
+      response.view('render_error.html.mustache')
     end
 
     cannon_app.get('/defer-render-error') do |request, response, next_proc|
       EM.defer(
         -> do
-          response.view('render_error.html')
+          response.view('render_error.html.mustache')
         end
       )
     end

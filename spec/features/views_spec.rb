@@ -9,7 +9,7 @@ RSpec.describe 'Views', :cannon_app do
     cannon_app.get('/render') do |request, response|
       response.context[:name] = 'John Calvin'
       response.context[:greeting] = 'Hello'
-      response.view('render_test.html')
+      response.view('render_test.html.mustache')
     end
 
     cannon_app.listen(async: true)
