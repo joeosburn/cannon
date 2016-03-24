@@ -8,6 +8,10 @@ module PathCache
 
 private
 
+  def file(filepath)
+    file_and_content_type(filepath)[0]
+  end
+
   def file_and_content_type(filepath)
     if @app.cache[cache].include?(filepath)
       @app.cache[cache][filepath]

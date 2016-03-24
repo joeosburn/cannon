@@ -26,6 +26,8 @@ RSpec.describe 'Views', :cannon_app do
     it 'handles mustache templates' do
       get '/render'
       expect(response.body).to include('Hello John Calvin')
+      expect(response.code).to be(200)
+      expect(response['Content-Type']).to eq('text/html')
     end
   end
 end
