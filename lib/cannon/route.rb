@@ -15,15 +15,7 @@ module Cannon
     end
 
     def matches?(request)
-      return false unless method == 'ALL' || request.method == method
-
-      matches = self.path.match(request.path)
-      if matches.nil?
-        false
-      else
-        @params.each_with_index { |key, index| request.params[key.to_sym] = matches.captures[index] }
-        true
-      end
+      matched_method?(request.method) && matched_path?(request.path)
     end
 
     def cache?
@@ -36,6 +28,8 @@ module Cannon
       if redirect
         response.permanent_redirect(redirect)
       elsif @route_action
+        matches = matched_path(request.path)
+        @params.each_with_index { |key, index| request.params[key.to_sym] = matches.captures[index] }
         @route_action.run(request, response, finish_proc)
       end
     end
@@ -46,28 +40,32 @@ module Cannon
 
   private
 
+    def matched_method?(request_method)
+      method == 'ALL' || request_method == method
+    end
+
+    def matched_path?(path)
+      matched_path(path) != nil
+    end
+
+    def matched_path(path)
+      # cache the matched path so that we don't have to keep re-matching it
+      if @last_matched_path != path
+        @matched_path = self.path.match(path)
+        @last_matched_path = path
+      end
+
+      @matched_path
+    end
+
     def build_path(path)
       path = '/' + path unless path =~ /^\// # ensure path begins with '/'
-      @params = []
+      path.gsub!('/', '\/')
 
-      if path.include? ':'
-        param_path_to_regexp(path)
-      else
-        /^#{path.gsub('/', '\/')}$/
-      end
-    end
+      @params = path.scan(/:[a-zA-Z0-9_]+/).map { |param| param[1..-1] }
+      @params.each { |param| path.gsub!(":#{param}", '([^\/]+)') }
 
-    def param_path_to_regexp(path)
-      /^#{path.split('/').map { |part| normalize_path_part(part) }.join('\/')}$/
-    end
-
-    def normalize_path_part(part)
-      if part =~ /^:(.+)/
-        @params << $1
-        '([^\/]+)'
-      else
-        part
-      end
+      /^#{path}$/
     end
 
     def build_route_action(actions, callback: nil)
