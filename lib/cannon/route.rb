@@ -60,26 +60,12 @@ module Cannon
 
     def build_path(path)
       path = '/' + path unless path =~ /^\// # ensure path begins with '/'
-      @params = []
+      path.gsub!('/', '\/')
 
-      if path.include? ':'
-        param_path_to_regexp(path)
-      else
-        /^#{path.gsub('/', '\/')}$/
-      end
-    end
+      @params = path.scan(/:[a-zA-Z0-9_]+/).map { |param| param[1..-1] }
+      @params.each { |param| path.gsub!(":#{param}", '([^\/]+)') }
 
-    def param_path_to_regexp(path)
-      /^#{path.split('/').map { |part| normalize_path_part(part) }.join('\/')}$/
-    end
-
-    def normalize_path_part(part)
-      if part =~ /^:(.+)/
-        @params << $1
-        '([^\/]+)'
-      else
-        part
-      end
+      /^#{path}$/
     end
 
     def build_route_action(actions, callback: nil)

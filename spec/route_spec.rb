@@ -54,5 +54,48 @@ RSpec.describe Cannon::Route do
         end
       end
     end
+
+    describe 'path matching' do
+      describe 'a regular path' do
+        let(:route) { described_class.new('/location/a-city', app: app, method: 'GET', cache: false) }
+        let(:request1) { double(Cannon::Request, path: '/location/a-city', method: 'GET') }
+        let(:request2) { double(Cannon::Request, path: '/location/a-city/town', method: 'GET') }
+
+        it 'matches' do
+          expect(route.matches?(request1)).to be(true)
+          expect(route.matches?(request2)).to be(false)
+        end
+      end
+
+      describe 'a path with url params' do
+        let(:route) { described_class.new(':type/catalog/:id', app: app, method: 'GET', cache: false) }
+        let(:request1) { double(Cannon::Request, path: '/chairs/catalog/big', method: 'GET') }
+        let(:request2) { double(Cannon::Request, path: '/chairs/catalog/', method: 'GET') }
+        let(:request3) { double(Cannon::Request, path: '/locations/catalog/5', method: 'GET') }
+        let(:request4) { double(Cannon::Request, path: '//places/catalog/4', method: 'GET') }
+
+        it 'matches' do
+          expect(route.matches?(request1)).to be(true)
+          expect(route.matches?(request2)).to be(false)
+          expect(route.matches?(request3)).to be(true)
+          expect(route.matches?(request4)).to be(false)
+        end
+      end
+
+      describe 'a path with irregular url params' do
+        let(:route) { described_class.new(':category-thing/:id.html', app: app, method: 'GET', cache: false) }
+        let(:request1) { double(Cannon::Request, path: '/chairs-thing/5.html', method: 'GET') }
+        let(:request2) { double(Cannon::Request, path: '/chairs-blah/6', method: 'GET') }
+        let(:request3) { double(Cannon::Request, path: '/other-thing/city.html', method: 'GET') }
+        let(:request4) { double(Cannon::Request, path: '//-thing/.html', method: 'GET') }
+
+        it 'matches' do
+          expect(route.matches?(request1)).to be(true)
+          expect(route.matches?(request2)).to be(false)
+          expect(route.matches?(request3)).to be(true)
+          expect(route.matches?(request4)).to be(false)
+        end
+      end
+    end
   end
 end
