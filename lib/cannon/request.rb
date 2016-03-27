@@ -55,7 +55,30 @@ module Cannon
       @response.send(html, status: :internal_server_error)
     end
 
+    def request_id
+      @request_id ||= retrieve_request_id
+    end
+
   private
+
+    def retrieve_request_id
+      header_request_id || generate_request_id
+    end
+
+    def header_request_id
+      headers['X-Request-Id'][0..254] if headers.include?('X-Request-Id') && headers['X-Request-Id'].length > 0
+    end
+
+    def generate_request_id
+      return nil unless app.runtime.config.generate_request_ids
+
+      id = SecureRandom.hex(18)
+      id[8] = '-'
+      id[13] = '-'
+      id[18] = '-'
+      id[23] = '-'
+      id
+    end
 
     def benchmark_request
       @app.logger.debug "Response took #{time_ago_in_ms(start_time)}ms"
