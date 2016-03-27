@@ -2,8 +2,8 @@ require 'cgi'
 
 module Cannon
   class Request
-    attr_accessor :protocol, :method, :http_cookie, :content_type, :path, :uri, :query_string, :post_content, :headers,
-                  :start_time
+    attr_accessor :protocol, :method, :http_cookie, :content_type, :path, :uri, :query_string, :post_content,
+                  :http_headers, :start_time
 
     attr_reader :app, :response
 
@@ -16,7 +16,7 @@ module Cannon
       self.uri = http_server.instance_variable_get('@http_request_uri')
       self.query_string = http_server.instance_variable_get('@http_query_string')
       self.post_content = http_server.instance_variable_get('@http_post_content')
-      self.headers = http_server.instance_variable_get('@http_headers')
+      self.http_headers = http_server.instance_variable_get('@http_headers')
       self.start_time = Time.now
       @app = app
       @response = response
@@ -41,6 +41,10 @@ module Cannon
       @handled = true
     end
 
+    def headers
+      @headers ||= parse_headers
+    end
+
     def not_found
       @response.send('Not Found', status: :not_found)
     end
@@ -59,6 +63,10 @@ module Cannon
 
     def time_ago_in_ms(time_ago)
       Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
+    end
+
+    def parse_headers
+      Hash[http_headers.split("\x00").map { |header| header.split(': ', 2) }]
     end
 
     def parse_params
