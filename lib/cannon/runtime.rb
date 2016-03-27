@@ -62,7 +62,11 @@ module Cannon
         @logger = value
         logger.datetime_format = '%Y-%m-%d %H:%M:%S'
         logger.formatter = proc do |severity, datetime, progname, msg|
-          "#{msg}\n"
+          if LSpace[:request] && LSpace[:request].request_id != nil
+            "request_id=#{LSpace[:request].request_id} #{msg}\n"
+          else
+            "#{msg}\n"
+          end
         end
         self.log_level = log_level
       end
