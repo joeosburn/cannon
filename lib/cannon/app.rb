@@ -181,20 +181,20 @@ module Cannon
     def add_route(path, method:, actions:, redirect:, cache:, &block)
       route = Route.new(path, app: self, method: method, actions: actions, redirect: redirect, cache: cache)
       routes << route
-      extra_router(route)
+      more_actions(route)
     end
 
-    def extra_router(route)
-      ExtraRouter.new(self, route)
+    def more_actions(route)
+      MoreActions.new(self, route)
     end
 
-    class ExtraRouter
+    class MoreActions
       def initialize(app, route)
         @app = app
         @route = route
       end
 
-      def handle(&block)
+      def action(&block)
         @route.add_route_action(block)
         self
       end

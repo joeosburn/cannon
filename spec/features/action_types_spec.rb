@@ -69,9 +69,9 @@ RSpec.describe 'Action types', :cannon_app do
 
     cannon_app.get('/inline_chained') do |request, response|
       response.send('first')
-    end.handle do |request, response|
+    end.action do |request, response|
       response.send(' second')
-    end.handle do |request, response|
+    end.action do |request, response|
       response.send(' third')
     end
 
@@ -82,7 +82,7 @@ RSpec.describe 'Action types', :cannon_app do
           next_proc.call
         end
       )
-    end.handle do |request, response|
+    end.action do |request, response|
       response.send(' second')
     end
 

@@ -4,7 +4,7 @@ RSpec.describe 'Requests', :cannon_app do
   before(:each) do
     cannon_app.get('/basic') do |request, response|
       response.send('hi')
-    end.handle do |request, response|
+    end.action do |request, response|
       response.send(' how are you?')
     end
 
