@@ -35,7 +35,7 @@ module Cannon
     class UnknownLogLevel < StandardError; end
 
     class Config
-      attr_accessor :cache_app, :benchmark_requests, :port, :ip_address
+      attr_accessor :cache_app, :benchmark_requests, :port, :ip_address, :generate_request_ids
       attr_reader :logger, :log_level
 
       LOG_LEVELS = {
@@ -55,6 +55,7 @@ module Cannon
         @log_level = :info
         $stdout.sync = true
         self.logger = Logger.new($stdout)
+        self.generate_request_ids = false
       end
 
       def logger=(value)
