@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'cannon'
+
+if ARGV[0]
+  require "./#{ARGV[0]}"
+else
+  puts 'Usage: cannon <app.rb> [-p PORT]'
+end
