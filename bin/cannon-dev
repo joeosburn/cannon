@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+require 'listen'
+
+class DevEnvironment
+  def initialize(*arguments)
+    @arguments = arguments
+  end
+
+  def start
+    spawn_app
+    listen
+  end
+
+  def spawn_app
+    @pid = spawn "cannon #{@arguments.join(' ')}"
+  end
+
+  def end
+    @listener.stop
+  end
+
+  def reload
+    Process.kill('TERM', @pid)
+    Process.wait @pid rescue SystemCallError
+    puts 'Reloading app...'
+    spawn_app
+  end
+
+  def listen
+    @listener = Listen.to(Dir.pwd) { reload }
+    @listener.start
+    sleep
+  end
+end
+
+if ARGV[0]
+  env = DevEnvironment.new(ARGV)
+  trap('INT') { env.end; exit }
+  env.start
+else
+  puts 'Usage: cannon-dev <app.rb> [-p PORT]'
+end
