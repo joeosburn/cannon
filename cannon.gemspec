@@ -12,8 +12,8 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Cannon is a fast web framework}
   spec.homepage      = 'https://github.com/joeosburn/cannon'
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  spec.bindir        = 'exe'
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.bindir        = 'bin'
+  spec.executables   = ['cannon', 'cannon-dev']
   spec.require_paths = ['lib']
   spec.test_files = Dir['spec/**/*']
 
@@ -24,6 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'pry', '~> 0.10.3'
   spec.add_dependency 'msgpack', '~> 0.7.1'
   spec.add_dependency 'lspace', '~> 0.13'
+  spec.add_dependency 'listen', '~> 3.0.6'
 
   spec.add_development_dependency 'rspec', '~> 3.3.0'
   spec.add_development_dependency 'http-cookie', '~> 1.0.2'
