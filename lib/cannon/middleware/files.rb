@@ -1,7 +1,7 @@
 module Cannon
   module Middleware
     class Files
-      include PathCache
+      include FileCache
 
       attr_accessor :path_array
 

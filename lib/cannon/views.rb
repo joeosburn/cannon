@@ -2,7 +2,7 @@ require 'mustache'
 
 module Cannon
   module Views
-    include PathCache
+    include FileCache
 
     def view(filename)
       if renderable?(filename)

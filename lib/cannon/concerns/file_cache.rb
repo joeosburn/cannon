@@ -1,6 +1,6 @@
 require 'mime/types'
 
-module PathCache
+module FileCache
   def self.included(base)
     base.send(:attr_accessor, :base_path, :cache_key)
   end
