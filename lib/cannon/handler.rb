@@ -8,8 +8,6 @@ module Cannon
       response = Response.new(self, app)
       request = Request.new(self, app, response: response)
 
-      app.ensure_latest_app_loaded unless app.runtime.config.cache_app
-
       LSpace.with(request: request, response: response, app: app) do
         begin
           app.handle(request, response)

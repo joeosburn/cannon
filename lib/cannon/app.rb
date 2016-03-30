@@ -105,10 +105,6 @@ module Cannon
       logger.info "Cannon no longer listening"
     end
 
-    def ensure_latest_app_loaded
-      $LOADED_FEATURES.each { |feature| load_file_if_changed_for_app(feature) }
-    end
-
     def config
       @config ||= Config.new
     end
@@ -147,21 +143,6 @@ module Cannon
     end
 
   private
-
-    def load_file_if_changed_for_app(file)
-      return unless file =~ /^#{runtime.root}/
-      mtime = File.mtime(file)
-      load_file(file, mtime: mtime) if file_mtimes[file] != mtime
-    end
-
-    def load_file(file, mtime:)
-      load file
-      file_mtimes[file] = mtime
-    end
-
-    def file_mtimes
-      @file_mtimes ||= {}
-    end
 
     def middleware_runner
       @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)

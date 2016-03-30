@@ -1,19 +1,20 @@
 module Cannon
   module Middleware
     class Files
-      include PathCache
+      include FileCache
+
+      attr_accessor :path_array
 
       def initialize(app)
         @app = app
 
-        self.cache = :files
+        self.cache_key = :files
         self.base_path = build_base_path
+        self.path_array = build_path_array
       end
 
       def run(request, response, next_proc)
         return next_proc.call if request.handled?
-
-        reload_cache if outdated_cache?
 
         if path_array.include? request.path
           file, content_type = *file_and_content_type("#{base_path}#{request.path}")
@@ -26,6 +27,12 @@ module Cannon
       end
 
     private
+
+      def build_path_array
+        Dir.glob("#{base_path}/**/*").reject { |file| File.directory?(file) }.collect do |name|
+          name.gsub(/^#{base_path}/, '')
+        end
+      end
 
       def build_base_path
         @app.config.public_path =~ /^\// ? @app.config.public_path : "#{@app.runtime.root}/#{@app.config.public_path}"
