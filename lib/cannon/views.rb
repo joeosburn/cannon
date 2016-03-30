@@ -5,8 +5,6 @@ module Cannon
     include PathCache
 
     def view(filename)
-      reload_cache if outdated_cache?
-
       if renderable?(filename)
         render(filename)
       else
@@ -21,7 +19,7 @@ module Cannon
   protected
 
     def initialize_views
-      self.cache = :views
+      self.cache_key = :views
       self.base_path = build_view_path
     end
 
