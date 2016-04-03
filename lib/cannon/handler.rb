@@ -5,7 +5,7 @@ module Cannon
     attr_accessor :app
 
     def process_http_request
-      response = Response.new(self, app)
+      response = Response.new(RecordedDelegatedResponse.new(self), app: app)
       request = Request.new(self, app, response: response)
 
       LSpace.with(request: request, response: response, app: app) do
