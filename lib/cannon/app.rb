@@ -10,7 +10,7 @@ module Cannon
     def initialize(app_binding, port: nil, ip_address: nil)
       @app_binding = app_binding
       @subapps = {}
-      @routes = []
+      @routes = {}
 
       opts = @app_binding.eval('ARGV')
       if index = opts.index('-p')
@@ -35,13 +35,12 @@ module Cannon
       app.mount_on(self)
     end
 
-    def listen(port: runtime.config.port, ip_address: runtime.config.ip_address, async: false)
-      if ENV['CONSOLE']
-        command_set = Pry::CommandSet.new {}
-        Pry.start binding, commands: command_set
-        exit
-      end
+    def console
+      command_set = Pry::CommandSet.new {}
+      Pry.start binding, commands: command_set
+    end
 
+    def listen(port: runtime.config.port, ip_address: runtime.config.ip_address, async: false)
       raise AlreadyListening, 'App is currently listening' unless @server_thread.nil?
 
       $LOAD_PATH << runtime.root
@@ -64,17 +63,7 @@ module Cannon
         }
       end
 
-      trap('INT') do
-        puts 'Caught interrupt; shutting down...'
-        stop
-        exit
-      end
-
-      trap('TERM') do
-        puts 'Caught term signal; shutting down...'
-        stop
-        exit
-      end
+      trap_signals
 
       if async
         notification = Queue.new
@@ -142,6 +131,20 @@ module Cannon
 
   private
 
+    def trap_signals
+      trap('INT') do
+        puts 'Caught interrupt; shutting down...'
+        stop
+        exit
+      end
+
+      trap('TERM') do
+        puts 'Caught term signal; shutting down...'
+        stop
+        exit
+      end
+    end
+
     def middleware_runner
       @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
     end
@@ -161,8 +164,19 @@ module Cannon
       route = Route.new(path, actions, app: self)
       route.method = method
       yield route if block_given?
-      routes << route
+      routes[route] = build_route_action(actions)
       more_actions(route)
+    end
+
+    def build_route_action(actions, callback: nil)
+      return callback if actions.size < 1
+
+      route_action = RouteAction.new(@app, action: actions.pop, route: self, callback: callback)
+      build_route_action(actions, callback: route_action)
+    end
+
+    def add_route_action(action)
+      @route_action.last_action.callback = RouteAction.new(@app, action: action, route: self, callback: nil)
     end
 
     def more_actions(route)
