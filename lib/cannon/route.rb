@@ -1,13 +1,18 @@
 module Cannon
   class Route
-    attr_reader :path, :actions, :redirect, :method
+    attr_writer :cache
+    attr_reader :path, :method
+    attr_accessor :actions, :redirect
 
-    def initialize(path, app:, method:, actions: nil, redirect: nil, cache:)
+    def initialize(path, actions, app:)
       @path = build_path(path)
-      @method, @app, @redirect = method.to_s.upcase, app, redirect
-      @actions = actions || []
-      @route_action = build_route_action(@actions.dup)
-      @cache = cache
+      @app = app
+      @route_action = build_route_action(actions)
+      @cache = true
+    end
+
+    def method=(new_method)
+      @method = new_method.to_s.upcase
     end
 
     def add_route_action(action)
