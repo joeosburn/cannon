@@ -27,6 +27,8 @@ private
 end
 
 module Cannon::Test
+  attr_reader :response
+
   DEFAULT_PORT = 5031
 
   def cannon_app
@@ -44,10 +46,6 @@ module Cannon::Test
     define_method(http_method) do |path, port: DEFAULT_PORT, **params|
       http_request(path, Net::HTTP.const_get(http_method.capitalize, false), :port => port, params_type => params)
     end
-  end
-
-  def response
-    @response
   end
 
   def cookies

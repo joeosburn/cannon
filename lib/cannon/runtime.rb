@@ -2,6 +2,8 @@ require 'yaml'
 
 module Cannon
   class Runtime
+    attr_reader :cache
+
     def initialize(app_binding)
       @app_binding = app_binding
       @cache = {}
@@ -9,10 +11,6 @@ module Cannon
 
     def config
       @config ||= Config.new
-    end
-
-    def cache
-      @cache
     end
 
     def action_cache

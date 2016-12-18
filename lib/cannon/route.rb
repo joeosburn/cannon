@@ -28,9 +28,18 @@ module Cannon
       if redirect
         response.permanent_redirect(redirect)
       elsif @route_action
-        matches = matched_path(request.path)
-        @params.each_with_index { |key, index| request.params[key.to_sym] = matches.captures[index] }
+        populate_request_params(request)
         @route_action.run(request, response, finish_proc)
+      end
+    end
+
+    def populate_request_params(request)
+      matches = matched_path(request.path)
+
+      index = 0
+      while index < @params.size
+        request.params[@params[index].to_sym] = matches.captures[index]
+        index += 1
       end
     end
 
