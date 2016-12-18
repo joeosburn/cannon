@@ -1,46 +1,53 @@
 module Cannon
+  # ActionCache handles basic caching for GET requests.
   class ActionCache
-    def initialize(cache:)
+    attr_reader :route_action, :cache
+
+    def initialize(route_action, cache:)
+      @route_action = route_action
       @cache = cache
     end
 
-    def handle_route_action(route_action, request:, response:, next_proc:)
-      if request.method == 'GET' && !route_action.action.is_a?(Proc) && cached?(route_action.action)
-        run_action_cache(request, response, route_action: route_action)
+    def run_action(request, response, next_proc)
+      if cached?
+        run_action_cache(request, response)
         next_proc.call
       else
-        cached_next_proc = lambda do
-          response.delegated_response.stop_recording
-          @cache[cache_key(route_action.action)] = response.delegated_response.recording
-          next_proc.call
-        end
         response.delegated_response.start_recording
-        route_action.run_action(request, response, cached_next_proc)
+        route_action.run_action(request, response, end_recording_proc(response, next_proc))
       end
     end
 
-    def delete(action)
-      @cache.delete(cache_key(action)) if cached?(action)
+    def delete
+      cache.delete(cache_key) if cached?
     end
 
-    def cached?(action)
-      @cache.include? cache_key(action)
-    end
-
-    def clear
-      @cache.reject! { |k, v| k =~ /^action_cache_/ }
+    def cached?
+      cache.include? cache_key
     end
 
   private
 
-    def run_action_cache(request, response, route_action:)
-      @cache[cache_key(route_action.action)].each do |sym, args, block|
+    def end_recording_proc(response, next_proc)
+      lambda do
+        response.delegated_response.stop_recording
+        write_cache_value(response)
+        next_proc.call
+      end
+    end
+
+    def write_cache_value(response)
+      cache[cache_key] = response.delegated_response.recording
+    end
+
+    def run_action_cache(_request, response)
+      cache[cache_key].each do |sym, args, block|
         response.delegated_response.send(sym, *args, &block)
       end
     end
 
-    def cache_key(action)
-      "action_cache_#{action}"
+    def cache_key
+      "action_cache_#{route_action.action}"
     end
   end
 end

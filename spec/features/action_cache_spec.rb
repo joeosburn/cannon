@@ -134,27 +134,6 @@ RSpec.describe 'Action caching', :cannon_app do
       expect(cookies['username'].expires).to eq(Time.new(2017, 10, 31, 10, 30, 05))
       expect(cookies['password'].max_age).to eq(400)
     end
-
-    describe 'busting the cache' do
-      it 'allows specific actions to be busted' do
-        allow(Object).to receive(:called)
-        get('/simple')
-        expect(response.body).to eq('simple response')
-        expect(response.code).to eq(200)
-        expect(Object).to have_received(:called).with('simple').exactly(1).times
-        get('/simple')
-        expect(response.body).to eq('simple response')
-        expect(response.code).to eq(200)
-        expect(Object).to have_received(:called).with('simple').exactly(1).times
-
-        cannon_app.runtime.action_cache.delete('simple')
-
-        get('/simple')
-        expect(response.body).to eq('simple response')
-        expect(response.code).to eq(200)
-        expect(Object).to have_received(:called).with('simple').exactly(2).times
-      end
-    end
   end
 
   %w{PUT POST PATCH DELETE}.each do |request_type|
