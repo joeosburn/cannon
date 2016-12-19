@@ -1,11 +1,12 @@
 require 'mustache'
 
 module Cannon
+  # Basic view support for Response
   module Views
     include FileCache
 
     def view(filename)
-      if renderable?(filename)
+      if filename.split('.').last == 'mustache'
         render(filename)
       else
         raw_view(filename)
@@ -25,10 +26,6 @@ module Cannon
 
   private
 
-    def renderable?(filename)
-      filename.split('.').last == 'mustache'
-    end
-
     def render(filename)
       file = file(full_path(filename))
       content_type = mime_type(filename.split('.')[0..-2].join('.'))
@@ -47,7 +44,15 @@ module Cannon
     end
 
     def build_view_path
-      @app.config.view_path =~ /^\// ? @app.config.view_path : "#{@app.runtime.root}/#{@app.config.view_path}"
+      app_view_path_relative? ? @app.config.view_path : full_view_path
+    end
+
+    def app_view_path_relative?
+      @app.config.view_path =~ /^\//
+    end
+
+    def full_view_path
+      "#{@app.runtime.root}/#{@app.config.view_path}"
     end
   end
 end
