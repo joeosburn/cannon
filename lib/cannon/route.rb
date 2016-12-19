@@ -21,11 +21,20 @@ module Cannon
       "Route: #{path}"
     end
 
-    def path_matches(path)
-      matchable_path.match(path)
+    def needs_params?
+      @params.size > 0
+    end
+
+    def path_params(path)
+      matches = path_matches(path).captures
+      params.map.with_index { |key, index| [key.to_sym, matches[index]] }.to_h
     end
 
   private
+
+    def path_matches(path)
+      matchable_path.match(path)
+    end
 
     def matched_method?(request_method)
       @method == 'ALL' || request_method == @method

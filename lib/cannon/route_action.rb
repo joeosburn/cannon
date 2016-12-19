@@ -32,6 +32,7 @@ module Cannon
     end
 
     def handle(request, response, finish_proc)
+      request.handle!
       run_action(request, response, next_proc(request, response, finish_proc))
     end
 
@@ -43,10 +44,6 @@ module Cannon
       else
         run_bound_action(request, response, next_proc)
       end
-    end
-
-    def needs_params?
-      true
     end
 
   private
@@ -122,6 +119,8 @@ module Cannon
     end
 
     def handle(request, response, finish_proc)
+      request.handle!
+
       if request.method == 'GET' && action_cache
         action_cache.run_action(request, response, next_proc(request, response, finish_proc))
       else
@@ -136,11 +135,8 @@ module Cannon
     end
 
     def handle(request, response, next_proc)
+      request.handle!
       response.permanent_redirect(redirect)
-    end
-
-    def needs_params?
-      false
     end
   end
 end

@@ -1,5 +1,6 @@
 module Cannon
   module Middleware
+    # Middleware for handling routing logic
     class Router
       def initialize(app)
         @app = app
@@ -8,12 +9,7 @@ module Cannon
       def run(request, response, next_proc)
         return next_proc.call if request.handled?
 
-        if route = routes.route_for_request(request)
-          route_action = routes[route]
-          request.handle!
-          inject_route_params_into_request!(route, request) if route_action.needs_params?
-          route_action.handle(request, response, next_proc)
-        end
+        handle(request, response, next_proc)
       end
 
       def route(route, actions)
@@ -34,15 +30,15 @@ module Cannon
         @routes ||= Routes.new
       end
 
-      def inject_route_params_into_request!(route, request)
-        matches = route.path_matches(request.path)
+      def handle(request, response, next_proc)
+        return unless route = routes.route_for_request(request)
 
-        for index in 0...route.params.size
-          request.params[route.params[index].to_sym] = matches.captures[index]
-        end
+        request.params.merge!(route.path_params(request.path)) if route.needs_params?
+        routes[route].handle(request, response, next_proc)
       end
     end
 
+    # Simple class for storing hash with the pattern of a key of a route and a value of a route action
     class Routes
       def initialize
         @routes = {}
@@ -62,6 +58,7 @@ module Cannon
     end
   end
 
+  # Additional functionality to be added App for routing support
   module AppRouting
     %w{get post put patch delete head all}.each do |http_method|
       define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, cache: true, &block|
