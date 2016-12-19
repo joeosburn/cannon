@@ -59,6 +59,10 @@ module Cannon
       @request_id ||= retrieve_request_id
     end
 
+    def to_s
+      "#{method} #{path}"
+    end
+
   private
 
     def retrieve_request_id
