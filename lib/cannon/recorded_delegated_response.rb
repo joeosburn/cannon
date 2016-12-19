@@ -1,4 +1,6 @@
 module Cannon
+  # RecordedDelegatedResponse is delegated response than can record all of its method calls and
+  # provide them as a recording to be played back later.
   class RecordedDelegatedResponse
     attr_reader :headers
 
@@ -34,7 +36,7 @@ module Cannon
     def cookies(key, value)
       method_stack << [:cookies, [key, value], nil]
       @cookies[key] = value
-      header('Set-Cookie', @cookies.collect { |k, v| v })
+      header('Set-Cookie', @cookies.collect { |_key, value| value })
     end
 
     def send_headers
