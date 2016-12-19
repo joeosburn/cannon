@@ -7,6 +7,7 @@ require 'cannon/middleware/session'
 require 'cannon/middleware/flash'
 
 module Cannon
+  # Runs the middlewares in deferrable form
   class MiddlewareRunner
     include EventMachine::Deferrable
 
@@ -41,6 +42,7 @@ module Cannon
     end
   end
 
+  # Holds the middlewares in a hash accessible by name and handles instantation
   class Middlewares
     def initialize(app)
       @wares = Hash.new { |wares, name| wares[name] = instantiate(name) }
@@ -66,6 +68,7 @@ module Cannon
     end
   end
 
+  # App code for middleware support
   module AppMiddleware
     def middleware
       @middleware ||= Middlewares.new(self)
