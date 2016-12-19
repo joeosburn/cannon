@@ -2,6 +2,7 @@ require 'eventmachine'
 require 'evma_httpserver'
 require 'logger'
 
+require 'cannon/app'
 require 'cannon/base'
 require 'cannon/concerns'
 require 'cannon/config'
@@ -15,7 +16,6 @@ require 'cannon/middleware'
 require 'cannon/route_action'
 require 'cannon/route'
 require 'cannon/handler'
-require 'cannon/app'
 
 module Cannon
   include Base

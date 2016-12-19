@@ -3,9 +3,7 @@ require 'spec_helper'
 RSpec.describe 'Requests', :cannon_app do
   before(:each) do
     cannon_app.get('/basic') do |request, response|
-      response.send('hi')
-    end.action do |request, response|
-      response.send(' how are you?')
+      response.send('hi how are you doing?')
     end
 
     cannon_app.get('/bad') do |response, request|
@@ -34,7 +32,7 @@ RSpec.describe 'Requests', :cannon_app do
 
   it 'sets the Content-Length' do
     get '/basic'
-    expect(response['Content-Length']).to eq('15')
+    expect(response['Content-Length']).to eq('21')
   end
 
   it 'handles params in routes' do

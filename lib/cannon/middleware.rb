@@ -10,9 +10,12 @@ module Cannon
   class MiddlewareRunner
     include EventMachine::Deferrable
 
-    def initialize(ware, callback:, app:)
+    attr_reader :ware
+
+    def initialize(ware_name, callback:, app:)
       @app = app
-      @ware, @callback = instantiate(ware), callback
+      @ware = app.middleware[ware_name]
+      @callback = callback
     end
 
     def run(request, response)
@@ -21,7 +24,7 @@ module Cannon
         self.succeed(request, response)
       end
 
-      result = @ware.run(request, response, next_proc)
+      result = ware.run(request, response, next_proc)
     end
 
   private
@@ -36,17 +39,60 @@ module Cannon
         end
       end
     end
+  end
 
-    def instantiate(ware)
-      if ware.is_a?(String)
+  class Middlewares
+    def initialize(app)
+      @wares = Hash.new { |wares, name| wares[name] = instantiate(name) }
+      @app = app
+    end
+
+    def [](name)
+      @wares[name]
+    end
+
+  private
+
+    def instantiate(ware_name)
+      if ware_name.is_a?(String)
         begin
-          Object.const_get(ware).new(@app)
+          Object.const_get(ware_name).new(@app)
         rescue NameError
-          Object.const_get("Cannon::Middleware::#{ware}").new(@app)
+          Object.const_get("Cannon::Middleware::#{ware_name}").new(@app)
         end
       else
-        ware.new(@app)
+        ware_name.new(@app)
       end
     end
   end
+
+  module AppMiddleware
+    def middleware
+      @middleware ||= Middlewares.new(self)
+    end
+
+    def handle(request, response)
+      super
+      middleware_runner.run(request, response) unless request.handled? || config.middleware.size == 0
+    end
+
+  private
+
+    def middleware_runner
+      @middleware_runner ||= build_middleware_runner
+    end
+
+    def prepared_middleware_stack
+      config.middleware.dup
+    end
+
+    def build_middleware_runner(middleware = prepared_middleware_stack, callback: nil)
+      return callback if middleware.size < 1
+
+      middleware_runner = MiddlewareRunner.new(middleware.pop, callback: callback, app: self)
+      build_middleware_runner(middleware, callback: middleware_runner)
+    end
+  end
 end
+
+Cannon::App.prepend Cannon::AppMiddleware

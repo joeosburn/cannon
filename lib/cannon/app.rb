@@ -10,7 +10,6 @@ module Cannon
     def initialize(app_binding, port: nil, ip_address: nil)
       @app_binding = app_binding
       @subapps = {}
-      @routes = {}
 
       opts = @app_binding.eval('ARGV')
       if index = opts.index('-p')
@@ -19,15 +18,6 @@ module Cannon
 
       runtime.config.port = port unless port.nil?
       runtime.config.ip_address = ip_address unless ip_address.nil?
-    end
-
-    %w{get post put patch delete head all}.each do |http_method|
-      define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, cache: true, &block|
-        add_route(path, http_method.to_sym, [block, action, actions].flatten.compact) do |route|
-          route.redirect = redirect
-          route.cache = cache
-        end
-      end
     end
 
     def mount(app, at:)
@@ -122,11 +112,7 @@ module Cannon
           subapp.handle(request, response)
           request.path = original_path
         end
-
-        return if request.handled?
       end
-
-      middleware_runner.run(request, response) unless config.middleware.size == 0
     end
 
   private
@@ -142,56 +128,6 @@ module Cannon
         puts 'Caught term signal; shutting down...'
         stop
         exit
-      end
-    end
-
-    def middleware_runner
-      @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
-    end
-
-    def prepared_middleware_stack
-      config.middleware.dup
-    end
-
-    def build_middleware_runner(middleware, callback: nil)
-      return callback if middleware.size < 1
-
-      middleware_runner = MiddlewareRunner.new(middleware.pop, callback: callback, app: self)
-      build_middleware_runner(middleware, callback: middleware_runner)
-    end
-
-    def add_route(path, method, actions, &block)
-      route = Route.new(path, actions, app: self)
-      route.method = method
-      yield route if block_given?
-      routes[route] = build_route_action(actions)
-      more_actions(route)
-    end
-
-    def build_route_action(actions, callback: nil)
-      return callback if actions.size < 1
-
-      route_action = RouteAction.new(@app, action: actions.pop, route: self, callback: callback)
-      build_route_action(actions, callback: route_action)
-    end
-
-    def add_route_action(action)
-      @route_action.last_action.callback = RouteAction.new(@app, action: action, route: self, callback: nil)
-    end
-
-    def more_actions(route)
-      MoreActions.new(self, route)
-    end
-
-    class MoreActions
-      def initialize(app, route)
-        @app = app
-        @route = route
-      end
-
-      def action(&block)
-        @route.add_route_action(block)
-        self
       end
     end
   end

@@ -54,7 +54,7 @@ class World
 end
 
 RSpec.describe 'Action types', :cannon_app do
-  before(:each) do
+  before do
     cannon_app.get('/1-2-simple', actions: ['first', 'second'])
     cannon_app.get('/hi', action: 'hi')
     cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])
@@ -66,26 +66,6 @@ RSpec.describe 'Action types', :cannon_app do
     cannon_app.get('/inline') do |request, response|
       response.send('inline action')
     end
-
-    cannon_app.get('/inline_chained') do |request, response|
-      response.send('first')
-    end.action do |request, response|
-      response.send(' second')
-    end.action do |request, response|
-      response.send(' third')
-    end
-
-    cannon_app.get('/1-2-inline') do |request, response, next_proc|
-      EM.defer(
-        -> do
-          response.send('first')
-          next_proc.call
-        end
-      )
-    end.action do |request, response|
-      response.send(' second')
-    end
-
 
     cannon_app.listen(async: true)
   end
@@ -114,16 +94,6 @@ RSpec.describe 'Action types', :cannon_app do
       get '/inline'
       expect(response.code).to be(200)
       expect(response.body).to eq('inline action')
-    end
-
-    it 'handles an actions chain' do
-      get '/inline_chained'
-      expect(response.body).to eq('first second third')
-    end
-
-    it 'handles next_proc calls for deferred processing' do
-      get '/1-2-inline'
-      expect(response.body).to eq('first second')
     end
   end
 
