@@ -13,11 +13,11 @@ module Cannon
       end
 
       def route(route, actions)
-        routes[route] = RouteAction.build(@app, actions)
+        routes[route] = RouteAction.route_actions(@app, actions)
       end
 
-      def cached_route(route, actions)
-        routes[route] = CachingRouteAction.build(@app, actions)
+      def caching_route(route, actions)
+        routes[route] = RouteAction.caching_route_actions(@app, actions)
       end
 
       def redirect(route, location)
@@ -68,7 +68,7 @@ module Cannon
         if redirect
           router.redirect(route, redirect)
         elsif cache
-          router.cached_route(route, actions)
+          router.caching_route(route, actions)
         else
           router.route(route, actions)
         end

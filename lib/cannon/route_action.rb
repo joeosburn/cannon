@@ -1,54 +1,64 @@
 module Cannon
+  # A RouteAction is an object which runs an action in response to a route being matched.
+  # Typically, there will be one or more route actions associated with a single route,
+  # which are created via the ::route_actions or ::caching_route_actions methods.
   class RouteAction
     include EventMachine::Deferrable
 
     class << self
-      def controller(name, app)
-        controllers[name] ||= Object.const_get(name).new(app)
-      end
-
-      def controllers
-        @controllers ||= {}
-      end
-
-      def build(app, actions, callback: nil)
+      def route_actions(app, actions, callback = nil)
         return callback if actions.size < 1
 
-        route_action = new(app, actions.pop, callback: callback)
-        build(app, actions, callback: route_action)
+        route_action = route_action(app, actions.pop, callback)
+        yield route_action if block_given?
+        route_actions(app, actions, route_action)
+      end
+
+      def caching_route_actions(app, actions)
+        route_actions(app, actions) { |route_action| route_action.with_cache if app.runtime.config.cache_app }
+      end
+
+      def route_action(app, action, callback)
+        if action.is_a? Proc
+          InlineRouteAction.new(app, action, callback)
+        elsif action.include? '#'
+          ControllerRouteAction.new(app, action, callback)
+        else
+          BoundRouteAction.new(app, action, callback)
+        end
       end
     end
 
-    attr_reader :action, :app
+    attr_reader :action, :app, :action_cache
 
-    def initialize(app, action, callback:)
+    def initialize(app, action, callback)
       @app = app
       @action = action
       @callback = callback
     end
 
-    def last_action
-      @callback.nil? ? self : @callback.last_action
-    end
-
     def handle(request, response, finish_proc)
       request.handle!
-      run_action(request, response, next_proc(request, response, finish_proc))
+
+      next_proc = generate_next_proc(request, response, finish_proc)
+
+      if request.method == 'GET' && action_cache
+        action_cache.run_action(request, response, next_proc)
+      else
+        run_action(request, response, next_proc)
+      end
     end
 
-    def run_action(request, response, next_proc)
-      if action.is_a? Proc
-        run_inline_action(request, response, next_proc)
-      elsif action.include? '#'
-        run_controller_action(request, response, next_proc)
-      else
-        run_bound_action(request, response, next_proc)
+    def with_cache
+      @action_cache = begin
+        ActionCache.new(self, cache: app.runtime.cache) unless action.is_a?(Proc)
       end
+      self
     end
 
   private
 
-    def next_proc(request, response, finish_proc)
+    def generate_next_proc(request, response, finish_proc)
       next_proc = -> do
         if response.flushed?
           fail
@@ -60,7 +70,21 @@ module Cannon
       end
     end
 
-    def run_inline_action(request, response, next_proc)
+    def setup_callback
+      set_deferred_status nil
+      callback do |request, response, finish_proc|
+        if @callback
+          @callback.handle(request, response, finish_proc)
+        else
+          finish_proc.call
+        end
+      end
+    end
+  end
+
+  # RouteAction which calls an inline proc
+  class InlineRouteAction < RouteAction
+    def run_action(request, response, next_proc)
       app.logger.debug 'Action: Inline'
 
       if action.arity == 2
@@ -70,71 +94,68 @@ module Cannon
         action.call(request, response, next_proc)
       end
     end
+  end
 
-    def run_controller_action(request, response, next_proc)
-      controller, action_name = action.split('#')
-
-      app.logger.debug "Controller: #{controller}, Action: #{action_name}"
-
-      controller_instance = RouteAction.controller(controller, app)
-      if controller_instance.method(action_name).arity == 2
-        controller_instance.send(action_name, request, response)
-        next_proc.call
-      else
-        controller_instance.send(action_name, request, response, next_proc)
-      end
-    end
-
-    def run_bound_action(request, response, next_proc)
+  # RouteAction which calls a method from the binding of the app instantiation
+  class BoundRouteAction < RouteAction
+    def run_action(request, response, next_proc)
       app.logger.debug "Action: #{action}"
 
-      if app.app_binding.method(action).arity == 2
-        app.app_binding.send(action, request, response)
+      if app_binding.method(action).arity == 2
+        app_binding.send(action, request, response)
         next_proc.call
       else
-        app.app_binding.send(action, request, response, next_proc)
+        app_binding.send(action, request, response, next_proc)
       end
     end
 
-    def setup_callback
-      set_deferred_status nil
-      callback do |request, response, finish_proc|
-        if @callback.nil?
-          finish_proc.call
-        else
-          @callback.handle(request, response, finish_proc)
-        end
-      end
+    def app_binding
+      @app_binding ||= app.app_binding
     end
   end
 
-  class CachingRouteAction < RouteAction
-    def action_cache
-      return @action_cache if defined? @action_cache
-      @action_cache = begin
-        if app.runtime.config.cache_app && !action.is_a?(Proc)
-          ActionCache.new(self, cache: app.runtime.cache)
-        end
+  # RouteAction which calls an action from persisting controller instance
+  class ControllerRouteAction < RouteAction
+    class << self
+      def controller(name, app)
+        controllers[name] ||= Object.const_get(name).new(app)
+      end
+
+      def controllers
+        @controllers ||= {}
       end
     end
 
-    def handle(request, response, finish_proc)
-      request.handle!
+    def initialize(app, action, callback)
+      super
+      @controller, @action_name = action.split('#')
+    end
 
-      if request.method == 'GET' && action_cache
-        action_cache.run_action(request, response, next_proc(request, response, finish_proc))
+    def run_action(request, response, next_proc)
+      app.logger.debug "Controller: #{@controller}, Action: #{@action_name}"
+
+      if controller_instance.method(@action_name).arity == 2
+        controller_instance.send(@action_name, request, response)
+        next_proc.call
       else
-        run_action(request, response, next_proc(request, response, finish_proc))
+        controller_instance.send(@action_name, request, response, next_proc)
       end
+    end
+
+  private
+
+    def controller_instance
+      @controller_instance ||= self.class.controller(@controller, app)
     end
   end
 
+  # RouteAction for Redirecting
   class RedirectRouteAction
     def initialize(location)
       @location = location
     end
 
-    def handle(request, response, next_proc)
+    def handle(request, response, _next_proc)
       request.handle!
       response.permanent_redirect(redirect)
     end
