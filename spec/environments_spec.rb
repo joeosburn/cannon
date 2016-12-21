@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe 'Cannon environment', :cannon_app do
   context 'no environment specified' do
-    before(:each) { ENV['CANNON_ENV'] = nil }
+    before { ENV['CANNON_ENV'] = nil }
 
     it 'sets the environment to development' do
       expect(Cannon.env).to eq('development')
@@ -10,7 +10,7 @@ RSpec.describe 'Cannon environment', :cannon_app do
   end
 
   context 'environment specified' do
-    before(:each) { ENV['CANNON_ENV'] = 'strange' }
+    before { ENV['CANNON_ENV'] = 'strange' }
 
     it 'sets the environment to the environment specified' do
       expect(Cannon.env).to eq('strange')
@@ -18,7 +18,7 @@ RSpec.describe 'Cannon environment', :cannon_app do
   end
 
   describe 'environment helper methods' do
-    before(:each) do
+    before do
       ENV['CANNON_ENV'] = 'carrots'
 
       Cannon.environment(:potatoes) {}
@@ -43,7 +43,7 @@ RSpec.describe 'Cannon environment', :cannon_app do
   end
 
   describe 'environment specific config blocks' do
-    before(:each) do
+    before do
       ENV['CANNON_ENV'] = 'carrots'
 
       Cannon.environment(:potatoes) do
