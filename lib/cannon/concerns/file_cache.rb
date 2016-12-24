@@ -1,5 +1,6 @@
 require 'mime/types'
 
+# Concern which provides cached file loading with content types
 module FileCache
 private
 
@@ -20,7 +21,11 @@ private
   end
 
   def mime_type(filepath)
-    MIME::Types.type_for(filepath.split('/').last).first
+    mime_types(filepath.split('/').last).first
+  end
+
+  def mime_types(filename)
+    MIME::Types.type_for(filename)
   end
 
   def cache
