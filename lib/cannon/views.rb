@@ -17,14 +17,15 @@ module Cannon
       @context ||= {}
     end
 
-  protected
+  private
 
-    def initialize_views
-      self.cache_key = :views
-      self.base_path = build_view_path
+    def cache_key
+      :views
     end
 
-  private
+    def base_path
+      @base_path ||= build_view_path
+    end
 
     def render(filename)
       file = file(full_path(filename))

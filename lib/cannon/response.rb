@@ -62,8 +62,6 @@ module Cannon
       @delegated_response = delegated_response
       @flushed = false
 
-      initialize_views
-
       self.status = :ok
     end
 
