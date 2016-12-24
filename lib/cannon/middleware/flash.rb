@@ -1,15 +1,20 @@
 module Cannon
   module Middleware
+    # Middleware for providing flash on session
     class Flash
       def initialize(app)
         @app = app
       end
 
       def run(request, response, next_proc)
-        return next_proc.call if request.handled?
+        request.handled? ? next_proc.call : handle(request, response, next_proc)
+      end
 
+    private
+
+      def handle(request, _response, next_proc)
         request.define_singleton_method(:flash) do
-          @flash ||= Cannon::Flash.new(request.app, cookie_jar: request.signed_cookies)
+          @flash ||= Cannon::Flash.new(@app, cookie_jar: request.signed_cookies)
         end
 
         next_proc.call
@@ -18,6 +23,7 @@ module Cannon
   end
 end
 
+# Flash object which inherits from session
 class Cannon::Flash < Cannon::Session
   def initialize(app, cookie_jar:)
     super
