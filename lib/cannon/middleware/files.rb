@@ -19,7 +19,7 @@ module Cannon
           file, content_type = *file_and_content_type("#{base_path}#{request.path}")
           response.header('Content-Type', content_type) if content_type
           response.send(file)
-          request.handle!
+          request.handle
         end
 
         next_proc.call

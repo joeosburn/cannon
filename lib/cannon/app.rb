@@ -45,7 +45,7 @@ module Cannon
 
           LSpace.rescue StandardError do |error|
             if LSpace[:request] && LSpace[:app]
-              LSpace[:app].handle_error(error, request: LSpace[:request])
+              LSpace[:app].handle_error(error, LSpace[:request], LSpace[:response])
             else
               raise error
             end
@@ -65,10 +65,11 @@ module Cannon
       end
     end
 
-    def handle_error(error, request:)
+    def handle_error(error, request, response)
       logger.error error.message
       logger.error error.backtrace.join("\n")
-      request.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+      response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+      response.flush
       request.finish
     end
 
@@ -104,13 +105,8 @@ module Cannon
 
     def handle(request, response)
       @subapps.each do |mounted_at, subapp|
-        mount_matcher = /^#{mounted_at}/
-
-        if request.path =~ mount_matcher
-          original_path = request.path.dup
-          request.path.gsub!(mount_matcher, '')
+        request.attempt_mount(mounted_at) do
           subapp.handle(request, response)
-          request.path = original_path
         end
       end
     end

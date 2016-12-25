@@ -7,7 +7,7 @@ module Cannon
 
     def process_http_request
       response = Response.new(RecordedDelegatedResponse.new(self), app: app)
-      request = Request.new(self, app, response: response)
+      request = Request.new(self, app)
 
       lspace_process(request, response)
     end
@@ -19,10 +19,11 @@ module Cannon
         begin
           app.handle(request, response)
         rescue StandardError => error
-          app.handle_error(error, request: request)
+          app.handle_error(error, request, response)
         ensure
           unless request.handled?
-            request.not_found
+            response.not_found
+            response.flush
             request.finish
           end
         end

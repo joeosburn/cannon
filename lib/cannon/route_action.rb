@@ -38,7 +38,7 @@ module Cannon
     end
 
     def handle(request, response, finish_proc)
-      request.handle!
+      request.handle
 
       next_proc = generate_next_proc(request, response, finish_proc)
 
@@ -156,7 +156,7 @@ module Cannon
     end
 
     def handle(request, response, _next_proc)
-      request.handle!
+      request.handle
       response.permanent_redirect(redirect)
     end
   end

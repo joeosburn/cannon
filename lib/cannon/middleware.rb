@@ -36,6 +36,7 @@ module Cannon
         if @callback
           @callback.run(request, response)
         elsif request.handled?
+          response.flush
           request.finish
         end
       end

@@ -1,32 +1,40 @@
 require 'cgi'
 
 module Cannon
+  # Holds every incoming http request
   class Request
-    attr_accessor :protocol, :method, :http_cookie, :content_type, :path, :uri, :query_string, :post_content,
-                  :http_headers, :start_time
+    include RequestId
+    include Benchmarkable
 
-    attr_reader :app, :response
+    attr_reader :app, :path
 
-    def initialize(http_server, app, response:)
-      self.protocol = http_server.instance_variable_get('@http_protocol')
-      self.method = http_server.instance_variable_get('@http_request_method')
-      self.http_cookie = http_server.instance_variable_get('@http_cookie')
-      self.content_type = http_server.instance_variable_get('@http_content_type')
-      self.path = http_server.instance_variable_get('@http_path_info')
-      self.uri = http_server.instance_variable_get('@http_request_uri')
-      self.query_string = http_server.instance_variable_get('@http_query_string')
-      self.post_content = http_server.instance_variable_get('@http_post_content')
-      self.http_headers = http_server.instance_variable_get('@http_headers')
-      self.start_time = Time.now
+    {
+      protocol: 'http_protocol',
+      method: 'http_request_method',
+      http_cookie: 'http_cookie',
+      content_type: 'http_content_type',
+      uri: 'http_request_uri',
+      query_string: 'http_query_string',
+      post_content: 'http_post_content',
+      http_headers: 'http_headers'
+    }.each do |attr, server_attr|
+      define_method(attr) do
+        @http_server.instance_variable_get("@#{server_attr}") || ''
+      end
+    end
+
+    def initialize(http_server, app)
+      @path = http_server.instance_variable_get('@http_path_info')
+      @http_server = http_server
       @app = app
-      @response = response
-
       @handled = false
+      start_benchmarking if @app.runtime.config[:benchmark_requests]
     end
 
     def finish
-      @response.flush unless @response.flushed?
-      benchmark_request if @app.runtime.config[:benchmark_requests]
+      return unless @app.runtime.config[:benchmark_requests]
+      stop_benchmarking
+      benchmark_request(logger: @app.logger)
     end
 
     def params
@@ -37,7 +45,7 @@ module Cannon
       @handled
     end
 
-    def handle!
+    def handle
       @handled = true
     end
 
@@ -45,51 +53,32 @@ module Cannon
       @headers ||= parse_headers
     end
 
-    def not_found
-      @response.send('Not Found', status: :not_found)
-    end
-
-    def internal_server_error(title:, content:)
-      html = "<html><head><title>Internal Server Error: #{title}</title></head><body><h1>#{title}</h1><p>#{content}</p></body></html>"
-      @response.header('Content-Type', 'text/html')
-      @response.send(html, status: :internal_server_error)
-    end
-
-    def request_id
-      @request_id ||= retrieve_request_id
-    end
-
     def to_s
       "#{method} #{path}"
     end
 
+    def attempt_mount(mount_point)
+      matcher = /^#{mount_point}/
+      return unless @path =~ matcher
+
+      mount(matcher)
+      yield
+      unmount
+    end
+
+    def mount(matcher)
+      mount_paths << @path
+      @path = @path.gsub(matcher, '')
+    end
+
+    def unmount
+      @path = mount_paths.pop
+    end
+
   private
 
-    def retrieve_request_id
-      header_request_id || generate_request_id
-    end
-
-    def header_request_id
-      headers['X-Request-Id'][0..254] if headers.include?('X-Request-Id') && headers['X-Request-Id'].length > 0
-    end
-
-    def generate_request_id
-      return nil unless app.runtime.config[:generate_request_ids]
-
-      id = SecureRandom.hex(18)
-      id[8] = '-'
-      id[13] = '-'
-      id[18] = '-'
-      id[23] = '-'
-      id
-    end
-
-    def benchmark_request
-      @app.logger.debug "Response took #{time_ago_in_ms(start_time)}ms"
-    end
-
-    def time_ago_in_ms(time_ago)
-      Time.at((Time.now - time_ago)).strftime('%6N').to_i/1000.0
+    def mount_paths
+      @mount_paths ||= []
     end
 
     def parse_headers
@@ -99,10 +88,18 @@ module Cannon
     def parse_params
       case method.downcase
       when 'get'
-        Hash[CGI::parse(query_string || '').map { |(k, v)| [k.to_sym, v.last] }]
+        Hash[mapped_query_params]
       else
-        Hash[CGI::parse(post_content || '').map { |(k, v)| [k.to_sym, v.count > 1 ? v : v.first] }]
+        Hash[mapped_post_params]
       end
+    end
+
+    def mapped_query_params
+      CGI.parse(query_string).map { |(key, value)| [key.to_sym, value.last] }
+    end
+
+    def mapped_post_params
+      CGI.parse(post_content).map { |(key, value)| [key.to_sym, value.first] }
     end
   end
 end
