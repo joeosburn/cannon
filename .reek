@@ -1,3 +1,7 @@
 ---
 UtilityFunction:
   public_methods_only: true
+
+Attribute:
+  exclude:
+    - "Cannon::Response#status" # safe to be writeable
