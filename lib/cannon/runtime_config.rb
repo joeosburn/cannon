@@ -65,7 +65,7 @@ module Cannon
     end
 
     def has_request_id?
-      current_request && request_id
+      current_request && current_request_id
     end
 
     def current_request_id
