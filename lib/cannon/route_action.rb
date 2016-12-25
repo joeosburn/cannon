@@ -15,7 +15,7 @@ module Cannon
       end
 
       def caching_route_actions(app, actions)
-        route_actions(app, actions) { |route_action| route_action.with_cache if app.runtime.config.cache_app }
+        route_actions(app, actions) { |route_action| route_action.with_cache if app.runtime.config[:cache_app] }
       end
 
       def route_action(app, action, callback)

@@ -1,6 +1,9 @@
 require 'yaml'
 
 module Cannon
+  # Runtime for Cannon. Holds config and other objects which are used for the runtime of Cannon.
+  # There will only be one runtime instance per running app of cannon, while there may be several Cannon
+  # apps in a single running Cannon instance, each with their own config.
   class Runtime
     attr_reader :cache
 
@@ -12,9 +15,9 @@ module Cannon
     def config
       @config ||= Config.new
     end
-    
+
     def logger
-      config.logger
+      config[:logger]
     end
 
     def root
@@ -23,77 +26,7 @@ module Cannon
 
     def load_env(yaml_filename:)
       values = YAML.load_file(root.join(yaml_filename).to_s)
-      values.each { |k, v| ENV[k.to_s] = v }
-    end
-
-    class UnknownLogLevel < StandardError; end
-
-    class Config
-      attr_accessor :cache_app, :benchmark_requests, :port, :ip_address, :generate_request_ids
-      attr_reader :logger, :log_level
-
-      LOG_LEVELS = {
-        unknown: Logger::UNKNOWN,
-        fatal: Logger::FATAL,
-        error: Logger::ERROR,
-        warn: Logger::WARN,
-        info: Logger::INFO,
-        debug: Logger::DEBUG,
-      }
-
-      def initialize
-        self.ip_address = '127.0.0.1'
-        self.port = 5030
-        self.cache_app = true
-        self.benchmark_requests = true
-        @log_level = :info
-        $stdout.sync = true
-        self.logger = Logger.new($stdout)
-        self.generate_request_ids = false
-      end
-
-      def logger=(value)
-        @logger = value
-        logger.datetime_format = '%Y-%m-%d %H:%M:%S'
-        logger.formatter = proc do |severity, datetime, progname, msg|
-          if LSpace[:request] && LSpace[:request].request_id != nil
-            "request_id=#{LSpace[:request].request_id} #{msg}\n"
-          else
-            "#{msg}\n"
-          end
-        end
-        self.log_level = log_level
-      end
-
-      def log_level=(value)
-        raise UnknownLogLevel unless LOG_LEVELS.keys.include? value.to_sym
-        @log_level = value
-        logger.level = LOG_LEVELS[value.to_sym]
-      end
-
-      def cookies
-        @cookies ||= Cookies.new
-      end
-
-      def session
-        @session ||= Session.new
-      end
-
-      class Cookies
-        attr_accessor :secret
-
-        def initialize
-          self.secret = nil
-        end
-      end
-
-      class Session
-        attr_accessor :cookie_name
-
-        def initialize
-          self.cookie_name = '__session'
-        end
-      end
+      values.each { |key, value| ENV[key.to_s] = value }
     end
   end
 end

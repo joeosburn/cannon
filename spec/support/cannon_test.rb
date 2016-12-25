@@ -78,8 +78,8 @@ private
 
   def create_cannon_app
     app = Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1')
-    app.runtime.config.log_level = :error
-    app.runtime.config.cookies.secret = 'test'
+    app.runtime.config[:log_level] = :error
+    app.runtime.config[:cookies][:secret] = 'test'
     app.config.view_path = '../fixtures/views'
     app.config.public_path = '../fixtures/public'
     app

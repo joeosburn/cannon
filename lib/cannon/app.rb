@@ -16,8 +16,8 @@ module Cannon
         port ||= opts[index + 1]
       end
 
-      runtime.config.port = port unless port.nil?
-      runtime.config.ip_address = ip_address unless ip_address.nil?
+      runtime.config[:port] = port if port
+      runtime.config[:ip_address] = ip_address if ip_address
     end
 
     def mount(app, at:)
@@ -30,7 +30,7 @@ module Cannon
       Pry.start binding, commands: command_set
     end
 
-    def listen(port: runtime.config.port, ip_address: runtime.config.ip_address, async: false)
+    def listen(port: runtime.config[:port], ip_address: runtime.config[:ip_address], async: false)
       raise AlreadyListening, 'App is currently listening' unless @server_thread.nil?
 
       $LOAD_PATH << runtime.root

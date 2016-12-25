@@ -26,7 +26,7 @@ RSpec.describe 'Error handling', :cannon_app do
       )
     end
 
-    cannon_app.runtime.config.log_level = :fatal
+    cannon_app.runtime.config[:log_level] = :fatal
 
     cannon_app.listen(async: true)
   end

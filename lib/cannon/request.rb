@@ -26,7 +26,7 @@ module Cannon
 
     def finish
       @response.flush unless @response.flushed?
-      benchmark_request if @app.runtime.config.benchmark_requests
+      benchmark_request if @app.runtime.config[:benchmark_requests]
     end
 
     def params
@@ -74,7 +74,7 @@ module Cannon
     end
 
     def generate_request_id
-      return nil unless app.runtime.config.generate_request_ids
+      return nil unless app.runtime.config[:generate_request_ids]
 
       id = SecureRandom.hex(18)
       id[8] = '-'

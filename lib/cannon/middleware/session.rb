@@ -58,11 +58,11 @@ module Cannon
     end
 
     def write_cookie
-      @cookie_jar[@app.runtime.config.session.cookie_name] = {value: session_cookie.to_msgpack}
+      @cookie_jar[@app.runtime.config[:session][:cookie_name]] = {value: session_cookie.to_msgpack}
     end
 
     def read_cookie
-      cookie = @cookie_jar[@app.runtime.config.session.cookie_name]
+      cookie = @cookie_jar[@app.runtime.config[:session][:cookie_name]]
       cookie ? MessagePack.unpack(cookie) : {}
     end
   end
