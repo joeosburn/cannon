@@ -14,7 +14,7 @@ RSpec.describe 'Multiple apps at once', :cannon_app do
 
     app3 = Cannon::App.new(binding, port: 5033, ip_address: '127.0.0.1')
     app3.runtime.config[:log_level] = :fatal
-    app3.config.middleware = %w{RequestLogger Files Session Flash Router ContentType}
+    app3.config[:middleware] = %w{RequestLogger Files Session Flash Router ContentType}
     app3.get('/info') do |request, response|
       request.cookies
       response.send('app2 info')

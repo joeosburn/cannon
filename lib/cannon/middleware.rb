@@ -76,7 +76,7 @@ module Cannon
 
     def handle(request, response)
       super
-      middleware_runner.run(request, response) unless request.handled? || config.middleware.size == 0
+      middleware_runner.run(request, response) unless request.handled? || config[:middleware].size == 0
     end
 
   private
@@ -86,7 +86,7 @@ module Cannon
     end
 
     def prepared_middleware_stack
-      config.middleware.dup
+      config[:middleware].dup
     end
 
     def build_middleware_runner(middleware = prepared_middleware_stack, callback: nil)

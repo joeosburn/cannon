@@ -45,15 +45,15 @@ module Cannon
     end
 
     def build_view_path
-      app_view_path_relative? ? @app.config.view_path : full_view_path
+      app_view_path_relative? ? @app.config[:view_path] : full_view_path
     end
 
     def app_view_path_relative?
-      @app.config.view_path =~ /^\//
+      @app.config[:view_path] =~ /^\//
     end
 
     def full_view_path
-      "#{@app.runtime.root}/#{@app.config.view_path}"
+      "#{@app.runtime.root}/#{@app.config[:view_path]}"
     end
   end
 end

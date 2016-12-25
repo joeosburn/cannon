@@ -47,25 +47,25 @@ RSpec.describe 'Cannon environment', :cannon_app do
       ENV['CANNON_ENV'] = 'carrots'
 
       Cannon.environment(:potatoes) do
-        cannon_app.config.view_path = 'potatoes_view_path'
+        cannon_app.config[:view_path] = 'potatoes_view_path'
         cannon_app.runtime.config[:log_level] = :debug
       end
       Cannon.environment(:carrots) do
-        cannon_app.config.view_path = 'carrots_view_path'
+        cannon_app.config[:view_path] = 'carrots_view_path'
         cannon_app.runtime.config[:log_level] = :warn
       end
       Cannon.environment(:pickles) do
-        cannon_app.config.public_path = 'pickles_view_path'
+        cannon_app.config[:public_path] = 'pickles_view_path'
         cannon_app.runtime.config[:log_level] = :error
       end
       Cannon.environment(:onions, :carrots) do
-        cannon_app.config.public_path = 'shared_view_path'
+        cannon_app.config[:public_path] = 'shared_view_path'
       end
     end
 
     it 'runs the configuration for the given environment' do
-      expect(cannon_app.config.view_path).to eq('carrots_view_path')
-      expect(cannon_app.config.public_path).to eq('shared_view_path')
+      expect(cannon_app.config[:view_path]).to eq('carrots_view_path')
+      expect(cannon_app.config[:public_path]).to eq('shared_view_path')
       expect(cannon_app.runtime.config[:log_level]).to eq(:warn)
     end
   end

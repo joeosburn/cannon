@@ -48,15 +48,15 @@ module Cannon
       end
 
       def prepared_config_public_path
-        config_public_path_relative? ? @app.config.public_path : absolute_config_public_path
+        config_public_path_relative? ? @app.config[:public_path] : absolute_config_public_path
       end
 
       def config_public_path_relative?
-        @app.config.public_path =~ /^\//
+        @app.config[:public_path] =~ /^\//
       end
 
       def absolute_config_public_path
-        "#{@app.runtime.root}/#{@app.config.public_path}"
+        "#{@app.runtime.root}/#{@app.config[:public_path]}"
       end
     end
   end
