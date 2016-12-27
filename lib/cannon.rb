@@ -17,7 +17,7 @@ require 'cannon/recorded_delegated_response'
 require 'cannon/middleware'
 require 'cannon/route_action'
 require 'cannon/route'
-require 'cannon/handler'
+require 'cannon/request_handler'
 
 module Cannon
   include Base

@@ -64,7 +64,7 @@ module Cannon
     def server_proc
       proc do |app, notifier|
         EventMachine.run do
-          EventMachine.start_server(app.ip_address, app.port, Cannon::Handler, &new_handler_proc(app))
+          EventMachine.start_server(app.ip_address, app.port, Cannon::RequestHandler, &new_handler_proc(app))
           LSpace.rescue(StandardError, &lspace_rescue_proc)
           notifier << self
         end
@@ -81,7 +81,7 @@ module Cannon
     end
 
     def new_handler_proc(app)
-      proc { |handler| handler.app = app }
+      proc { |handler| handler.start(app) }
     end
   end
 end

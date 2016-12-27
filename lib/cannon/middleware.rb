@@ -37,7 +37,6 @@ module Cannon
           @callback.run(request, response)
         elsif request.handled?
           response.flush
-          request.finish
         end
       end
     end
@@ -77,10 +76,14 @@ module Cannon
 
     def handle(request, response)
       super
-      middleware_runner.run(request, response) unless request.handled? || config[:middleware].size == 0
+      middleware_runner.run(request, response) if run_middleware?(request)
     end
 
   private
+
+    def run_middleware?(request)
+      !request.handled? && config[:middleware].size > 0
+    end
 
     def middleware_runner
       @middleware_runner ||= build_middleware_runner

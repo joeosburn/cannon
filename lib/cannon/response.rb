@@ -109,6 +109,7 @@ module Cannon
 
     def not_found
       send('Not Found', status: :not_found)
+      flush
     end
 
   private
