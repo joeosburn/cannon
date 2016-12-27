@@ -5,3 +5,6 @@ UtilityFunction:
 Attribute:
   exclude:
     - "Cannon::Response#status" # safe to be writeable
+
+exclude_paths:
+  - spec/features
