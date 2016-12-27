@@ -1,5 +1,6 @@
 require 'http-cookie'
 
+# A mocked http response object suitable for testing
 class MockResponse
   def initialize(response)
     @response = response
@@ -21,11 +22,12 @@ private
 
   def build_headers
     headers = {}
-    each_header { |k, v| headers[k] = v }
+    each_header { |key, value| headers[key] = value }
     headers
   end
 end
 
+# Basic module for providing cannon app test support
 module Cannon::Test
   attr_reader :response
 
@@ -70,17 +72,27 @@ private
     @cannon_servers ||= {}
   end
 
-  def http_request(path, request_class, port:, post: nil, query: nil)
-    uri = URI("http://127.0.0.1:#{port}#{path}")
-    uri.query = URI.encode_www_form(query) unless query.nil?
-    req = request_class.new(uri)
-    req.set_form_data(post) unless post.nil?
-    req['Cookie'] = HTTP::Cookie.cookie_value(jar.cookies(uri)) unless jar.empty?
+  def http_request(path, request_class, options = {})
+    uri = build_uri("http://127.0.0.1:#{options[:port]}#{path}", options[:query])
+    req = build_req(uri, request_class, options[:post])
 
-    @response = MockResponse.new(Net::HTTP.start(uri.hostname, uri.port) do |http|
-      http.request(req)
-    end)
+    @response = MockResponse.new(Net::HTTP.start(uri.hostname, uri.port) { |http| http.request(req) })
 
+    handle_response_cookies(uri)
+  end
+
+  def build_uri(url, query)
+    URI(url).tap { |uri| uri.query = URI.encode_www_form(query) if query }
+  end
+
+  def build_req(uri, request_class, post)
+    request_class.new(uri).tap do |req|
+      req.set_form_data(post) if post
+      req['Cookie'] = HTTP::Cookie.cookie_value(jar.cookies(uri)) unless jar.empty?
+    end
+  end
+
+  def handle_response_cookies(uri)
     if @response['Set-Cookie']
       @response.get_fields('Set-Cookie').each do |cookie|
         jar.parse(cookie, uri)
@@ -89,13 +101,21 @@ private
   end
 
   def start_cannon_app
-    app = Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1')
-    app.runtime.config[:log_level] = :error
-    app.runtime.config[:cookies][:secret] = 'test'
-    app.config[:view_path] = '../fixtures/views'
-    app.config[:public_path] = '../fixtures/public'
-    start_cannon_server(app)
-    app
+    Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1').tap do |app|
+      default_runtime_config(app.runtime.config)
+      default_app_config(app.config)
+      start_cannon_server(app)
+    end
+  end
+
+  def default_runtime_config(config)
+    config[:log_level] = :error
+    config[:cookies][:secret] = 'test'
+  end
+
+  def default_app_config(config)
+    config[:view_path] = '../fixtures/views'
+    config[:public_path] = '../fixtures/public'
   end
 end
 
