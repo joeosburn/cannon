@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Subapps', :cannon_app do
-  before(:each) do
+  before do
     admin_app = Cannon::App.new(binding)
     admin_app.get('/login') do |request, response|
       response.send('Send your login info')
@@ -30,8 +30,6 @@ RSpec.describe 'Subapps', :cannon_app do
     cannon_app.get('/admin/info') do |request, response|
       response.send('Admin Info')
     end
-
-    cannon_app.listen(async: true)
   end
 
   it 'mounts the subapp at the given location' do

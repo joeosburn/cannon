@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Method types', :cannon_app do
-  before(:each) do
+  before do
     cannon_app.get('/hi') do |request, response|
       response.send('hi')
     end
@@ -38,8 +38,6 @@ RSpec.describe 'Method types', :cannon_app do
     cannon_app.all('/any') do |request, response|
       response.send("request method = #{request.method}")
     end
-
-    cannon_app.listen(async: true)
   end
 
   it 'handles get requests' do

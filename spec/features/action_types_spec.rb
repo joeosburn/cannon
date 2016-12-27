@@ -66,8 +66,6 @@ RSpec.describe 'Action types', :cannon_app do
     cannon_app.get('/inline') do |request, response|
       response.send('inline action')
     end
-
-    cannon_app.listen(async: true)
   end
 
   describe 'simple method' do

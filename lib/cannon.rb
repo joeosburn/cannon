@@ -2,6 +2,7 @@ require 'eventmachine'
 require 'evma_httpserver'
 require 'logger'
 
+require 'cannon/server'
 require 'cannon/app'
 require 'cannon/base'
 require 'cannon/concerns'

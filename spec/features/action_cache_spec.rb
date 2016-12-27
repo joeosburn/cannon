@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-Object.send(:define_method, :called) {|arg|}
+Object.send(:define_method, :called) { |arg| }
 
 def simple(request, response)
   Object.called('simple')
@@ -27,6 +27,9 @@ def cookies(request, response)
 end
 
 class World
+  def initialize(app)
+  end
+
   def home(request, response)
     Object.called('home')
     response.send('controller response')
@@ -34,7 +37,7 @@ class World
 end
 
 RSpec.describe 'Action caching', :cannon_app do
-  before(:each) do
+  before do
     cannon_app.get('/simple', action: 'simple')
     cannon_app.get('/home', action: 'World#home')
     cannon_app.get('/inline') do |request, response|
@@ -49,8 +52,6 @@ RSpec.describe 'Action caching', :cannon_app do
     cannon_app.get('/create', action: 'respond_201')
     cannon_app.get('/headers', action: 'headers')
     cannon_app.get('/cookies', action: 'cookies')
-
-    cannon_app.listen(async: true)
   end
 
   describe 'GET requests' do

@@ -2,22 +2,21 @@ require 'pry'
 require 'lspace/eventmachine'
 
 module Cannon
-  class AlreadyListening < StandardError; end
-
+  # Base cannon app class
   class App
-    attr_reader :routes, :app_binding
+    extend Forwardable
+
+    attr_reader :routes, :app_binding, :subapps
+
+    delegate ip_address: :runtime, port: :runtime
 
     def initialize(app_binding, port: nil, ip_address: nil)
       @app_binding = app_binding
       @subapps = {}
+      @mounted_on = nil
 
-      opts = @app_binding.eval('ARGV')
-      if index = opts.index('-p')
-        port ||= opts[index + 1]
-      end
-
-      runtime.config[:port] = port if port
-      runtime.config[:ip_address] = ip_address if ip_address
+      runtime.configure(ip_address, port)
+      $LOAD_PATH << runtime.root
     end
 
     def mount(app, at:)
@@ -30,59 +29,6 @@ module Cannon
       Pry.start binding, commands: command_set
     end
 
-    def listen(port: runtime.config[:port], ip_address: runtime.config[:ip_address], async: false)
-      raise AlreadyListening, 'App is currently listening' unless @server_thread.nil?
-
-      $LOAD_PATH << runtime.root
-
-      server_block = ->(notifier) do
-        EventMachine::run {
-          server = EventMachine::start_server(ip_address, port, Cannon::Handler) do |handler|
-            handler.app = self
-          end
-          notifier << server unless notifier.nil? # notify the calling thread that the server started if async
-          logger.info "Cannon listening on port #{port}..."
-
-          LSpace.rescue StandardError do |error|
-            if LSpace[:request] && LSpace[:app]
-              LSpace[:app].handle_error(error, LSpace[:request], LSpace[:response])
-            else
-              raise error
-            end
-          end
-        }
-      end
-
-      trap_signals
-
-      if async
-        notification = Queue.new
-        Thread.abort_on_exception = true
-        @server_thread = Thread.new { server_block.call(notification) }
-        notification.pop
-      else
-        server_block.call(nil)
-      end
-    end
-
-    def handle_error(error, request, response)
-      logger.error error.message
-      logger.error error.backtrace.join("\n")
-      response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
-      response.flush
-      request.finish
-    end
-
-    def stop
-      return if @server_thread.nil?
-      EventMachine::stop_event_loop
-      @server_thread.join(10)
-      @server_thread.kill unless @server_thread.stop?
-      Thread.abort_on_exception = false
-      @server_thread = nil
-      logger.info "Cannon no longer listening"
-    end
-
     def config
       @config ||= Config.new
     end
@@ -92,7 +38,11 @@ module Cannon
     end
 
     def runtime
-      @mounted_on&.runtime || (@runtime ||= Runtime.new(@app_binding))
+      if @mounted_on
+        @mounted_on.runtime
+      else
+        @runtime ||= Runtime.new(@app_binding)
+      end
     end
 
     def cache
@@ -103,8 +53,14 @@ module Cannon
       runtime.logger
     end
 
+    def handle_error(error, request, response)
+      log_error(error)
+      send_response_error(response, error)
+      request.finish
+    end
+
     def handle(request, response)
-      @subapps.each do |mounted_at, subapp|
+      subapps.each do |mounted_at, subapp|
         request.attempt_mount(mounted_at) do
           subapp.handle(request, response)
         end
@@ -113,18 +69,14 @@ module Cannon
 
   private
 
-    def trap_signals
-      trap('INT') do
-        puts 'Caught interrupt; shutting down...'
-        stop
-        exit
-      end
+    def send_response_error(response, error)
+      response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+      response.flush
+    end
 
-      trap('TERM') do
-        puts 'Caught term signal; shutting down...'
-        stop
-        exit
-      end
+    def log_error(error)
+      logger.error error.message
+      logger.error error.backtrace.join("\n")
     end
   end
 end

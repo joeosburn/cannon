@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'base64'
 
 RSpec.describe 'Cookies', :cannon_app do
-  before(:each) do
+  before do
     cannon_app.get('/basic') do |request, response|
       response.send("cookie = #{request.cookies['simple']}")
       request.cookies['simple'] = 'value'
@@ -35,8 +35,6 @@ RSpec.describe 'Cookies', :cannon_app do
       response.send(" complex = #{request.cookies['complex']}")
       response.send(" signed = #{request.signed_cookies['signed']}")
     end
-
-    cannon_app.listen(async: true)
   end
 
   it 'reads and writes cookies' do
@@ -77,7 +75,7 @@ RSpec.describe 'Cookies', :cannon_app do
   end
 
   describe 'signed' do
-    before(:each) do
+    before do
       get '/signed'
       expect(response.body).to eq('secure value = ')
     end

@@ -32,7 +32,7 @@ module Cannon::Test
   DEFAULT_PORT = 5031
 
   def cannon_app
-    @cannon_app ||= create_cannon_app
+    @cannon_app ||= start_cannon_app
   end
 
   {
@@ -56,7 +56,19 @@ module Cannon::Test
     @jar ||= HTTP::CookieJar.new
   end
 
+  def start_cannon_server(app)
+    cannon_servers[app] = Cannon::Server.start_async(app)
+  end
+
+  def stop_cannon_server(app)
+    cannon_servers[app].stop
+  end
+
 private
+
+  def cannon_servers
+    @cannon_servers ||= {}
+  end
 
   def http_request(path, request_class, port:, post: nil, query: nil)
     uri = URI("http://127.0.0.1:#{port}#{path}")
@@ -76,12 +88,13 @@ private
     end
   end
 
-  def create_cannon_app
+  def start_cannon_app
     app = Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1')
     app.runtime.config[:log_level] = :error
     app.runtime.config[:cookies][:secret] = 'test'
     app.config[:view_path] = '../fixtures/views'
     app.config[:public_path] = '../fixtures/public'
+    start_cannon_server(app)
     app
   end
 end
@@ -90,7 +103,7 @@ RSpec.configure do |config|
   config.include Cannon::Test
 
   config.append_after(:each, cannon_app: true) do
-    cannon_app.stop
+    stop_cannon_server(cannon_app)
   end
 
   config.append_before(:each, cannon_app: true) do
@@ -98,6 +111,6 @@ RSpec.configure do |config|
     jar.clear
     Cannon.instance_variable_set('@env', nil)
     Cannon.instance_variable_set('@config', nil)
-    create_cannon_app
+    cannon_app
   end
 end

@@ -6,7 +6,7 @@ RSpec.describe Cannon::Response do
   let(:response) { described_class.new(delegated_response, app: app) }
 
   describe '#flush' do
-    before(:each) do
+    before do
       allow(delegated_response).to receive(:send_headers)
       allow(delegated_response).to receive(:send_response)
     end

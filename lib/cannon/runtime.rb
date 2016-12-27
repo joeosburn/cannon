@@ -12,6 +12,19 @@ module Cannon
       @cache = {}
     end
 
+    def configure(ip_address, port)
+      config[:ip_address] = ip_address if ip_address
+      config[:port] = port if port
+    end
+
+    def ip_address
+      config[:ip_address]
+    end
+
+    def port
+      config[:port]
+    end
+
     def config
       @config ||= Config.new
     end

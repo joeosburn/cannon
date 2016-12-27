@@ -7,7 +7,7 @@ RSpec.describe Cannon::ActionCache do
 
   describe '#cached?' do
     context 'a cache entry exists' do
-      before(:each) { cache['action_cache_action'] = :action }
+      before { cache['action_cache_action'] = :action }
 
       it 'returns true' do
         expect(action_cache.cached?).to be(true)
