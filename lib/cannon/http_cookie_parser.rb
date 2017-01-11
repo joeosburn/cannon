@@ -33,7 +33,7 @@ module Cannon
   private
 
     def read_whitespace(cookie, pos)
-      raise EndOfString if cookie[pos] == nil
+      raise EndOfString unless cookie[pos]
       pos = pos + 1 while cookie[pos] == ' ' && pos < cookie.length
       pos
     end

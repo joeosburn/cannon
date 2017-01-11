@@ -6,5 +6,21 @@ Attribute:
   exclude:
     - "Cannon::Response#status" # safe to be writeable
 
+DataClump:
+  exclude:
+    - "Cannon::HttpCookieParser"
+
+DuplicateMethodCall:
+  exclude:
+    - "Cannon::HttpCookieParser"
+
+FeatureEnvy:
+  exclude:
+    - "Cannon::HttpCookieParser#read_whitespace"
+
+TooManyStatements:
+  exclude:
+    - "Cannon::HttpCookieParser"
+
 exclude_paths:
   - spec/features
