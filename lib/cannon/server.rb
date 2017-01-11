@@ -40,15 +40,14 @@ module Cannon
       end
     end
 
-    attr_reader :app, :notifier
+    attr_reader :app
 
     delegate logger: :app, ip_address: :app, port: :app
 
     def initialize(*args)
       self.class.abort_on_exception = true
       @app = args[0]
-      @notifier = Queue.new
-      super(args) { server_proc.call(@app, @notifier) }
+      super(args) { server_proc.call(app, notifier) }
       logger.info "Cannon listening on port #{port}..."
     end
 
@@ -57,6 +56,10 @@ module Cannon
       logger.info 'Cannon shutting down...'
       join(10)
       notifier << self if notifier
+    end
+
+    def notifier
+      @notifier ||= Queue.new
     end
 
   private
