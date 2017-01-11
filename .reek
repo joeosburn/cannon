@@ -21,6 +21,7 @@ FeatureEnvy:
 TooManyStatements:
   exclude:
     - "Cannon::HttpCookieParser"
+    - "Cannon::Runtime::Config#initialize"
 
 exclude_paths:
   - spec/features
