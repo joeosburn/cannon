@@ -75,7 +75,7 @@ module Cannon
       @path = mount_paths.pop
     end
 
-  private
+    private
 
     def mount_paths
       @mount_paths ||= []

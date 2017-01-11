@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe 'Method types', :cannon_app do
   before do
-    cannon_app.get('/hi') do |request, response|
+    cannon_app.get('/hi') do |_request, response|
       response.send('hi')
     end
 
@@ -10,7 +10,7 @@ RSpec.describe 'Method types', :cannon_app do
       response.send("key = #{request.params[:key]}, place = #{request.params[:place]}")
     end
 
-    cannon_app.post('/hi') do |request, response|
+    cannon_app.post('/hi') do |_request, response|
       response.send('created!', status: :created)
     end
 

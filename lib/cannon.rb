@@ -20,6 +20,7 @@ require 'cannon/route_action'
 require 'cannon/route'
 require 'cannon/request_handler'
 
+# Made Cannon module to hold base
 module Cannon
   include Base
 end

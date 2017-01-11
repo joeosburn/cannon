@@ -23,5 +23,9 @@ TooManyStatements:
     - "Cannon::HttpCookieParser"
     - "Cannon::Runtime::Config#initialize"
 
+BooleanParameter:
+  exclude:
+    - "Cannon::Environment#respond_to_missing?"
+
 exclude_paths:
   - spec/features

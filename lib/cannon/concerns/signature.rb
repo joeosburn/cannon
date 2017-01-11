@@ -6,11 +6,9 @@ module Signature
   class CookieSecretNotSet < StandardError; end
 
   def signature(value, app)
-    if secret = app.runtime.config[:cookies][:secret]
-      OpenSSL::HMAC.hexdigest(digest, secret, value)
-    else
-      raise CookieSecretNotSet, 'Set runtime.config[:cookies][:secret] to use signed cookies'
-    end
+    secret = app.runtime.config[:cookies][:secret]
+    raise CookieSecretNotSet, 'Set runtime.config[:cookies][:secret] to use signed cookies' unless secret
+    OpenSSL::HMAC.hexdigest(digest, secret, value)
   end
 
   def digest

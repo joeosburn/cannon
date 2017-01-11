@@ -1,69 +1,69 @@
 require 'spec_helper'
 
-def hi(request, response)
+def hi(_request, response)
   response.send('hi')
 end
 
-def how(request, response)
+def how(_request, response)
   response.send(' how ')
 end
 
-def are_you(request, response)
+def are_you(_request, response)
   response.send('are you?')
 end
 
-def first(request, response, next_proc)
+def first(_request, response, next_proc)
   EM.defer(
-    -> do
+    lambda do
       response.send('first')
       next_proc.call
     end
   )
 end
 
-def second(request, response)
+def second(_request, response)
   response.send(' second')
 end
 
 class World
-  def initialize(app)
+  def initialize(_app)
     @count = 0
   end
 
-  def hello(request, response)
+  def hello(_request, response)
     response.send('Hello World!')
   end
 
-  def count(request, response)
+  def count(_request, response)
     response.send("count = #{@count}")
     @count += 1
   end
 
-  def first(request, response, next_proc)
+  def first(_request, response, next_proc)
     EM.defer(
-      -> do
+      lambda do
         response.send('first')
         next_proc.call
       end
     )
   end
 
-  def second(request, response)
+  def second(_request, response)
     response.send(' second')
   end
 end
 
 RSpec.describe 'Action types', :cannon_app do
   before do
-    cannon_app.get('/1-2-simple', actions: ['first', 'second'])
+    cannon_app.get('/1-2-simple', actions: %w(first second))
     cannon_app.get('/hi', action: 'hi')
-    cannon_app.get('/how', actions: ['hi', 'how', 'are_you'])
+    cannon_app.get('/how', actions: %w(hi how are_you))
 
     cannon_app.get('/hello', action: 'World#hello')
     cannon_app.get('/count', action: 'World#count', cache: false)
     cannon_app.get('/1-2-controller', actions: ['World#first', 'World#second'])
 
-    cannon_app.get('/inline') do |request, response|
+    cannon_app.get('/inline') do |_request, response|
       response.send('inline action')
     end
   end

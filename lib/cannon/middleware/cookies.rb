@@ -13,7 +13,7 @@ module Cannon
         request.handled? ? next_proc.call : handle(request, response, next_proc)
       end
 
-    private
+      private
 
       def handle(request, response, next_proc)
         request.define_singleton_method(:cookies) do
@@ -70,7 +70,7 @@ module Cannon
       @cookies ||= HttpCookieParser.new(@request.http_cookie).parse
     end
 
-  private
+    private
 
     def assign_cookie(cookie, cookie_options)
       @assigned_cookies[cookie] = cookie_options
@@ -125,7 +125,7 @@ module Cannon
       @cookies ||= @request.cookies.cookies.select { |_key, value| value.include? 'signature' }
     end
 
-  private
+    private
 
     def verified_cookie?(name, cookie)
       return true if cookie['verified']

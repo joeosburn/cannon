@@ -2,11 +2,11 @@ require 'spec_helper'
 
 RSpec.describe 'Requests', :cannon_app do
   before do
-    cannon_app.get('/basic') do |request, response|
+    cannon_app.get('/basic') do |_request, response|
       response.send('hi how are you doing?')
     end
 
-    cannon_app.get('/bad') do |response, request|
+    cannon_app.get('/bad') do |_response, _request|
       bad_fail_code
     end
 
@@ -15,7 +15,9 @@ RSpec.describe 'Requests', :cannon_app do
     end
 
     cannon_app.get('/:type/by-grouping/:grouping') do |request, response|
-      response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
+      response.send(
+        "type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}"
+      )
     end
 
     cannon_app.get('/object/:id') do |request, response|

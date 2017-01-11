@@ -24,14 +24,15 @@ module Cannon
         routes[route] = RedirectRouteAction.new(location)
       end
 
-    private
+      private
 
       def routes
         @routes ||= Routes.new
       end
 
       def handle(request, response, next_proc)
-        return unless route = routes.route_for_request(request)
+        route = routes.route_for_request(request)
+        return unless route
 
         request.params.merge!(route.path_params(request.path)) if route.needs_params?
         routes[route].handle(request, response, next_proc)
@@ -53,21 +54,21 @@ module Cannon
       end
 
       def route_for_request(request)
-        @routes.find(-> { [] }) { |route, route_action| route.matches? request }[0]
+        @routes.find(-> { [] }) { |route, _route_action| route.matches? request }[0]
       end
     end
   end
 
   # Additional functionality to be added App for routing support
   module AppRouting
-    %w{get post put patch delete head all}.each do |http_method|
-      define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, cache: true, &block|
+    %w(get post put patch delete head all).each do |http_method|
+      define_method(http_method) do |path, options = {}, &block|
         route = Route.new(path, http_method)
-        actions = [block, action, actions].flatten.compact
+        actions = [block, options[:action], options[:actions]].flatten.compact
 
-        if redirect
-          router.redirect(route, redirect)
-        elsif cache
+        if options[:redirect]
+          router.redirect(route, options[:redirect])
+        elsif options.fetch(:cache, true)
           router.caching_route(route, actions)
         else
           router.route(route, actions)

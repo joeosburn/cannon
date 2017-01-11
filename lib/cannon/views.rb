@@ -17,7 +17,7 @@ module Cannon
       @context ||= {}
     end
 
-  private
+    private
 
     def cache_key
       :views
@@ -49,7 +49,7 @@ module Cannon
     end
 
     def app_view_path_relative?
-      @app.config[:view_path] =~ /^\//
+      @app.config[:view_path] =~ %r{^\/}
     end
 
     def full_view_path

@@ -4,7 +4,7 @@ RSpec.describe 'Configuration' do
   describe 'view_path' do
     it 'can be relative', :cannon_app do
       cannon_app.config[:view_path] = '../fixtures/views'
-      cannon_app.get('/') do |request, response|
+      cannon_app.get('/') do |_request, response|
         response.view('test.html')
       end
       get '/'
@@ -13,7 +13,7 @@ RSpec.describe 'Configuration' do
 
     it 'can be absolute', :cannon_app do
       cannon_app.config[:view_path] = cannon_app.runtime.root.to_s + '/../fixtures/views'
-      cannon_app.get('/') do |request, response|
+      cannon_app.get('/') do |_request, response|
         response.view('test.html')
       end
       get '/'

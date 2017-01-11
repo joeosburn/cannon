@@ -2,7 +2,7 @@ require 'mime/types'
 
 # Concern which provides cached file loading with content types
 module FileCache
-private
+  private
 
   def file(filepath)
     file_and_content_type(filepath)[0]

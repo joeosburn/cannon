@@ -3,7 +3,7 @@ module Cannon
   # Class for parsing http cookies
   class HttpCookieParser
     # Error raised when end of string hit; used for flow control
-    class EndOfString < Exception; end
+    class EndOfString < RuntimeError; end
 
     def initialize(http_cookie)
       @http_cookie = http_cookie
@@ -30,35 +30,35 @@ module Cannon
       cookies
     end
 
-  private
+    private
 
     def read_whitespace(cookie, pos)
       raise EndOfString unless cookie[pos]
-      pos = pos + 1 while cookie[pos] == ' ' && pos < cookie.length
+      pos += 1 while cookie[pos] == ' ' && pos < cookie.length
       pos
     end
 
     def read_cookie_name(cookie, pos)
       start_pos = pos
-      pos = pos + 1 while !['=', nil].include?(cookie[pos])
-      return cookie[start_pos..(pos - 1)], pos + 1
+      pos += 1 until ['=', nil].include?(cookie[pos])
+      [cookie[start_pos..(pos - 1)], pos + 1]
     end
 
     def read_cookie_value(cookie, pos)
       in_quotes = false
-      pos = pos + 1 and in_quotes = true if cookie[pos] == '"'
+      (pos += 1) && (in_quotes = true) if cookie[pos] == '"'
       start_pos = pos
 
       if in_quotes
-        pos = pos + 1 while pos < cookie.length && !(cookie[pos] == '"' && cookie[pos - 1] != '\\')
-        value = cookie[start_pos..(pos - 1)].gsub("\\\"", '"')
-        pos = pos + 1 while ![';', nil].include?(cookie[pos])
+        pos += 1 while pos < cookie.length && !(cookie[pos] == '"' && cookie[pos - 1] != '\\')
+        value = cookie[start_pos..(pos - 1)].gsub('\\"', '"')
+        pos += 1 until [';', nil].include?(cookie[pos])
       else
-        pos = pos + 1 while ![';', nil].include?(cookie[pos])
+        pos += 1 until [';', nil].include?(cookie[pos])
         value = cookie[start_pos..(pos - 1)]
       end
 
-      return value, pos + 1
+      [value, pos + 1]
     end
   end
 end

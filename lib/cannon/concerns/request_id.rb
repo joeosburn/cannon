@@ -4,7 +4,7 @@ module RequestId
     @request_id ||= retrieve_request_id
   end
 
-private
+  private
 
   def retrieve_request_id
     limited_header_request_id || generate_request_id

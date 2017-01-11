@@ -2,25 +2,25 @@ require 'spec_helper'
 
 RSpec.describe 'Error handling', :cannon_app do
   before do
-    cannon_app.get('/basic-error') do |request, response|
+    cannon_app.get('/basic-error') do |_request, response|
       response.fail_error
     end
 
-    cannon_app.get('/render-error') do |request, response|
+    cannon_app.get('/render-error') do |_request, response|
       response.view('render_error.html.mustache')
     end
 
-    cannon_app.get('/defer-render-error') do |request, response, next_proc|
+    cannon_app.get('/defer-render-error') do |_request, response, _next_proc|
       EM.defer(
-        -> do
+        lambda do
           response.view('render_error.html.mustache')
         end
       )
     end
 
-    cannon_app.get('/defer-error') do |request, response, next_proc|
+    cannon_app.get('/defer-error') do |_request, response, _next_proc|
       EM.defer(
-        -> do
+        lambda do
           response.defer_error
         end
       )

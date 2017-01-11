@@ -19,7 +19,7 @@ module Cannon
         end
       end
 
-    private
+      private
 
       def start_server(app)
         new(app).tap { |server| server.notifier.pop }
@@ -62,7 +62,7 @@ module Cannon
       @notifier ||= Queue.new
     end
 
-  private
+    private
 
     def server_proc
       proc do |app, notifier|

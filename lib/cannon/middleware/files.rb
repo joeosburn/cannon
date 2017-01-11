@@ -12,7 +12,7 @@ module Cannon
         request.handled? ? next_proc.call : handle(request, response, next_proc)
       end
 
-    private
+      private
 
       def handle(request, response, next_proc)
         if valid_file_request?(request)
@@ -52,7 +52,7 @@ module Cannon
       end
 
       def config_public_path_relative?
-        @app.config[:public_path] =~ /^\//
+        @app.config[:public_path] =~ %r{^\/}
       end
 
       def absolute_config_public_path

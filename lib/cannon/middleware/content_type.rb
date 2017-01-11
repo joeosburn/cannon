@@ -10,7 +10,7 @@ module Cannon
         response.headers['Content-Type'] ? next_proc.call : handle(request, response, next_proc)
       end
 
-    private
+      private
 
       def handle(_request, response, next_proc)
         response.headers['Content-Type'] = 'text/plain; charset=us-ascii'

@@ -10,7 +10,7 @@ module Cannon
         request.handled? ? next_proc.call : handle(request, response, next_proc)
       end
 
-    private
+      private
 
       def handle(request, _response, next_proc)
         request.define_singleton_method(:flash) do
@@ -21,18 +21,18 @@ module Cannon
       end
     end
   end
-end
 
-# Flash object which inherits from session
-class Cannon::Flash < Cannon::Session
-  def initialize(app, cookie_jar:)
-    super
-    @flash = read_cookie
-    @session_cookie = {}
-    write_cookie
-  end
+  # Flash object which inherits from session
+  class Flash < Cannon::Session
+    def initialize(app, cookie_jar:)
+      super
+      @flash = read_cookie
+      @session_cookie = {}
+      write_cookie
+    end
 
-  def [](key)
-    @flash[key]
+    def [](key)
+      @flash[key]
+    end
   end
 end

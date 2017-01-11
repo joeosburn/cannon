@@ -2,6 +2,7 @@
 
 require 'listen'
 
+# Class to manage the development environment for Cannon
 class DevEnvironment
   def initialize(*arguments)
     @arguments = arguments
@@ -22,7 +23,11 @@ class DevEnvironment
 
   def reload
     Process.kill('TERM', @pid)
-    Process.wait @pid rescue SystemCallError
+    begin
+      Process.wait @pid
+    rescue
+      SystemCallError
+    end
     puts 'Reloading app...'
     spawn_app
   end
@@ -36,7 +41,10 @@ end
 
 if ARGV[0]
   env = DevEnvironment.new(ARGV)
-  trap('INT') { env.end; exit }
+  trap('INT') do
+    env.end
+    exit
+  end
   env.start
 else
   puts 'Usage: cannon-dev <app.rb> [-p PORT]'

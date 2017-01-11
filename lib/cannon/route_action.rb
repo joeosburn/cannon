@@ -7,7 +7,7 @@ module Cannon
 
     class << self
       def route_actions(app, actions, callback = nil)
-        return callback if actions.size < 1
+        return callback if actions.empty?
 
         route_action = route_action(app, actions.pop, callback)
         yield route_action if block_given?
@@ -56,10 +56,10 @@ module Cannon
       self
     end
 
-  private
+    private
 
     def generate_next_proc(request, response, finish_proc)
-      next_proc = -> do
+      lambda do
         if response.flushed?
           fail
           finish_proc.call
@@ -142,7 +142,7 @@ module Cannon
       end
     end
 
-  private
+    private
 
     def controller_instance
       @controller_instance ||= self.class.controller(@controller, app)

@@ -22,7 +22,7 @@ module Cannon
     end
 
     def needs_params?
-      @params.size > 0
+      !@params.empty?
     end
 
     def path_params(path)
@@ -30,7 +30,7 @@ module Cannon
       params.map.with_index { |key, index| [key.to_sym, matches[index]] }.to_h
     end
 
-  private
+    private
 
     def path_matches(path)
       matchable_path.match(path)

@@ -26,7 +26,7 @@ module Cannon
       cache.include? cache_key
     end
 
-  private
+    private
 
     def end_recording_proc(response, next_proc)
       lambda do

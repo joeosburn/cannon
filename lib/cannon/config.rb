@@ -3,7 +3,7 @@ module Cannon
   class Config
     include ElementalReference
 
-    DEFAULT_MIDDLEWARE = %w{RequestLogger Files Cookies Session Flash Router ContentType}.freeze
+    DEFAULT_MIDDLEWARE = %w(RequestLogger Files Cookies Session Flash Router ContentType).freeze
 
     def initialize
       self.middleware = DEFAULT_MIDDLEWARE
@@ -11,7 +11,7 @@ module Cannon
       self.view_path = 'views'
     end
 
-  protected
+    protected
 
     attr_accessor :middleware, :public_path, :view_path
   end

@@ -1,7 +1,7 @@
 module Cannon
   # Base functionality for managing Cannon environment
   module Base
-    FUNCTIONS = %w{env environment }
+    FUNCTIONS = %w(env environment).freeze
 
     def self.included(base)
       FUNCTIONS.each { |function| base.send(:module_function, function) }
@@ -32,11 +32,16 @@ module Cannon
     end
 
     def method_missing(meth, *arguments, &block)
-      if env = environment(meth)
+      env = environment(meth)
+      if env
         @environments[0] == env
       else
         super
       end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      environment(method_name).present? || super
     end
 
     def respond_to?(meth)
@@ -48,15 +53,15 @@ module Cannon
       @environments[0]
     end
 
-    def ==(value)
-      @environments[0] == value
+    def ==(other)
+      @environments[0] == other
     end
 
-  private
+    private
 
-  def environment_methods
-    @environment_methods ||= @environments.map { |env| "#{env}?".to_sym }
-  end
+    def environment_methods
+      @environment_methods ||= @environments.map { |env| "#{env}?".to_sym }
+    end
 
     def environment(meth)
       environment_methods.include?(meth) ? meth[0..-2] : nil

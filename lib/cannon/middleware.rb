@@ -20,15 +20,15 @@ module Cannon
     end
 
     def run(request, response)
-      next_proc = -> do
+      next_proc = lambda do
         setup_callback
-        self.succeed(request, response)
+        succeed(request, response)
       end
 
-      result = ware.run(request, response, next_proc)
+      ware.run(request, response, next_proc)
     end
 
-  private
+    private
 
     def setup_callback
       set_deferred_status nil
@@ -53,7 +53,7 @@ module Cannon
       @wares[name]
     end
 
-  private
+    private
 
     def instantiate(ware_name)
       if ware_name.is_a?(String)
@@ -79,10 +79,10 @@ module Cannon
       middleware_runner.run(request, response) if run_middleware?(request)
     end
 
-  private
+    private
 
     def run_middleware?(request)
-      !request.handled? && config[:middleware].size > 0
+      !request.handled? && !config[:middleware].empty?
     end
 
     def middleware_runner
@@ -94,7 +94,7 @@ module Cannon
     end
 
     def build_middleware_runner(middleware = prepared_middleware_stack, callback: nil)
-      return callback if middleware.size < 1
+      return callback if middleware.empty?
 
       middleware_runner = MiddlewareRunner.new(middleware.pop, callback: callback, app: self)
       build_middleware_runner(middleware, callback: middleware_runner)

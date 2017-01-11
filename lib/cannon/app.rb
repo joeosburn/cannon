@@ -68,7 +68,7 @@ module Cannon
       end
     end
 
-  private
+    private
 
     def send_response_error(response, error)
       response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))

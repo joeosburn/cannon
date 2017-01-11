@@ -19,7 +19,7 @@ module Cannon
       @app = app
     end
 
-  private
+    private
 
     def request
       @request ||= Request.new(self, app)

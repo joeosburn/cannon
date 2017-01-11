@@ -11,17 +11,17 @@ RSpec.describe 'Multiple apps at once', :cannon_app do
   let(:app3) do
     app = Cannon::App.new(binding, port: 5033, ip_address: '127.0.0.1')
     app.runtime.config[:log_level] = :fatal
-    app.config[:middleware] = %w{RequestLogger Files Session Flash Router ContentType}
+    app.config[:middleware] = %w(RequestLogger Files Session Flash Router ContentType)
     start_cannon_server(app)
     app
   end
 
   before do
-    cannon_app.get('/info') do |request, response|
+    cannon_app.get('/info') do |_request, response|
       response.send('cannon_app info')
     end
 
-    app2.get('/info') do |request, response|
+    app2.get('/info') do |_request, response|
       response.send('app2 info')
     end
 

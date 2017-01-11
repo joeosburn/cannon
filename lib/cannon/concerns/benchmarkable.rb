@@ -2,7 +2,7 @@
 module Benchmarkable
   attr_reader :start_time
 
-private
+  private
 
   def start_benchmarking
     @start_time = Time.now
