@@ -1,87 +1,59 @@
 module Cannon
+  # Route which can be matched based on a path and method
   class Route
-    attr_reader :path, :actions, :redirect, :method
+    attr_reader :params
 
-    def initialize(path, app:, method:, actions: nil, redirect: nil, cache:)
-      @path = build_path(path)
-      @method, @app, @redirect = method.to_s.upcase, app, redirect
-      @actions = actions || []
-      @route_action = build_route_action(@actions.dup)
-      @cache = cache
+    def initialize(path, method)
+      @path = path
+      @method = method.to_s.upcase
+      @params = extract_params_from_path
     end
 
-    def add_route_action(action)
-      @route_action.last_action.callback = RouteAction.new(@app, action: action, route: self, callback: nil)
+    def matchable_path
+      @matcheable_path ||= prepare_matchable_path
     end
 
     def matches?(request)
       matched_method?(request.method) && matched_path?(request.path)
     end
 
-    def cache?
-      @cache
-    end
-
-    def handle(request, response, finish_proc)
-      request.handle!
-
-      if redirect
-        response.permanent_redirect(redirect)
-      elsif @route_action
-        populate_request_params(request)
-        @route_action.run(request, response, finish_proc)
-      end
-    end
-
-    def populate_request_params(request)
-      matches = matched_path(request.path)
-
-      index = 0
-      while index < @params.size
-        request.params[@params[index].to_sym] = matches.captures[index]
-        index += 1
-      end
-    end
-
     def to_s
       "Route: #{path}"
     end
 
-  private
+    def needs_params?
+      !@params.empty?
+    end
+
+    def path_params(path)
+      matches = path_matches(path).captures
+      params.map.with_index { |key, index| [key.to_sym, matches[index]] }.to_h
+    end
+
+    private
+
+    def path_matches(path)
+      matchable_path.match(path)
+    end
 
     def matched_method?(request_method)
-      method == 'ALL' || request_method == method
+      @method == 'ALL' || request_method == @method
     end
 
     def matched_path?(path)
-      matched_path(path) != nil
+      path_matches(path) != nil
     end
 
-    def matched_path(path)
-      # cache the matched path so that we don't have to keep re-matching it
-      if @last_matched_path != path
-        @matched_path = self.path.match(path)
-        @last_matched_path = path
-      end
-
-      @matched_path
+    def prepare_matchable_path
+      /^#{path_with_params.gsub('/', '\/')}$/
     end
 
-    def build_path(path)
-      path = '/' + path unless path =~ /^\// # ensure path begins with '/'
-      path.gsub!('/', '\/')
-
-      @params = path.scan(/:[a-zA-Z0-9_]+/).map { |param| param[1..-1] }
-      @params.each { |param| path.gsub!(":#{param}", '([^\/]+)') }
-
-      /^#{path}$/
+    def path_with_params
+      @params.reduce(@path) { |path, param| path.gsub(":#{param}", '([^\/]+)') }
     end
 
-    def build_route_action(actions, callback: nil)
-      return callback if actions.size < 1
-
-      route_action = RouteAction.new(@app, action: actions.pop, route: self, callback: callback)
-      build_route_action(actions, callback: route_action)
+    def extract_params_from_path
+      @path.scan(/:[a-zA-Z0-9_]+/).map { |param| param[1..-1] }
     end
   end
 end

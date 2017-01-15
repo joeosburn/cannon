@@ -1,14 +1,12 @@
 require 'spec_helper'
 
 RSpec.describe 'Requests', :cannon_app do
-  before(:each) do
-    cannon_app.get('/basic') do |request, response|
-      response.send('hi')
-    end.action do |request, response|
-      response.send(' how are you?')
+  before do
+    cannon_app.get('/basic') do |_request, response|
+      response.send('hi how are you doing?')
     end
 
-    cannon_app.get('/bad') do |response, request|
+    cannon_app.get('/bad') do |_response, _request|
       bad_fail_code
     end
 
@@ -17,14 +15,14 @@ RSpec.describe 'Requests', :cannon_app do
     end
 
     cannon_app.get('/:type/by-grouping/:grouping') do |request, response|
-      response.send("type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}")
+      response.send(
+        "type=#{request.params[:type]}, grouping=#{request.params[:grouping]}, sort=#{request.params[:sort]}"
+      )
     end
 
     cannon_app.get('/object/:id') do |request, response|
       response.send("view #{request.params[:id]}")
     end
-
-    cannon_app.listen(async: true)
   end
 
   it 'sets the Content-Type' do
@@ -34,7 +32,7 @@ RSpec.describe 'Requests', :cannon_app do
 
   it 'sets the Content-Length' do
     get '/basic'
-    expect(response['Content-Length']).to eq('15')
+    expect(response['Content-Length']).to eq('21')
   end
 
   it 'handles params in routes' do
@@ -50,10 +48,10 @@ RSpec.describe 'Requests', :cannon_app do
   end
 
   it 'returns 500 for errors' do
-    old_log_level = cannon_app.runtime.config.log_level
-    cannon_app.runtime.config.log_level = :fatal
+    old_log_level = cannon_app.runtime.config[:log_level]
+    cannon_app.runtime.config[:log_level] = :fatal
     get '/bad'
     expect(response.code).to be(500)
-    cannon_app.runtime.config.log_level = old_log_level
+    cannon_app.runtime.config[:log_level] = old_log_level
   end
 end

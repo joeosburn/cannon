@@ -6,7 +6,7 @@ RSpec.describe Cannon::Route do
   describe '#matches?' do
     context 'the methods do not match' do
       context 'the route method is ALL' do
-        let(:route) { described_class.new('/some/path', app: app, method: 'ALL', cache: false) }
+        let(:route) { described_class.new('/some/path', 'ALL') }
 
         context 'the paths match' do
           let(:request) { double(Cannon::Request, path: '/some/path', method: 'GET') }
@@ -26,7 +26,7 @@ RSpec.describe Cannon::Route do
       end
 
       context 'the route method is not ALL' do
-        let(:route) { described_class.new('/some/path', app: app, method: 'POST', cache: false) }
+        let(:route) { described_class.new('/some/path', 'POST') }
         let(:request) { double(Cannon::Request, path: '/some/path', method: 'GET') }
 
         it 'returns false' do
@@ -36,7 +36,7 @@ RSpec.describe Cannon::Route do
     end
 
     context 'the methods match' do
-      let(:route) { described_class.new('/some/path', app: app, method: 'GET', cache: false) }
+      let(:route) { described_class.new('/some/path', 'GET') }
 
       context 'the paths match' do
         let(:request) { double(Cannon::Request, path: '/some/path', method: 'GET') }
@@ -57,7 +57,7 @@ RSpec.describe Cannon::Route do
 
     describe 'path matching' do
       describe 'a regular path' do
-        let(:route) { described_class.new('/location/a-city', app: app, method: 'GET', cache: false) }
+        let(:route) { described_class.new('/location/a-city', 'GET') }
         let(:request1) { double(Cannon::Request, path: '/location/a-city', method: 'GET') }
         let(:request2) { double(Cannon::Request, path: '/location/a-city/town', method: 'GET') }
 
@@ -68,7 +68,7 @@ RSpec.describe Cannon::Route do
       end
 
       describe 'a path with url params' do
-        let(:route) { described_class.new(':type/catalog/:id', app: app, method: 'GET', cache: false) }
+        let(:route) { described_class.new('/:type/catalog/:id', 'GET') }
         let(:request1) { double(Cannon::Request, path: '/chairs/catalog/big', method: 'GET') }
         let(:request2) { double(Cannon::Request, path: '/chairs/catalog/', method: 'GET') }
         let(:request3) { double(Cannon::Request, path: '/locations/catalog/5', method: 'GET') }
@@ -83,7 +83,7 @@ RSpec.describe Cannon::Route do
       end
 
       describe 'a path with irregular url params' do
-        let(:route) { described_class.new(':category-thing/:id.html', app: app, method: 'GET', cache: false) }
+        let(:route) { described_class.new('/:category-thing/:id.html', 'GET') }
         let(:request1) { double(Cannon::Request, path: '/chairs-thing/5.html', method: 'GET') }
         let(:request2) { double(Cannon::Request, path: '/chairs-blah/6', method: 'GET') }
         let(:request3) { double(Cannon::Request, path: '/other-thing/city.html', method: 'GET') }

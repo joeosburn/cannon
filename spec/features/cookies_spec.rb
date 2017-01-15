@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'base64'
 
 RSpec.describe 'Cookies', :cannon_app do
-  before(:each) do
+  before do
     cannon_app.get('/basic') do |request, response|
       response.send("cookie = #{request.cookies['simple']}")
       request.cookies['simple'] = 'value'
@@ -13,8 +13,12 @@ RSpec.describe 'Cookies', :cannon_app do
       response.send("password = #{request.cookies['password']}, ")
       response.send("remember_me = #{request.cookies['remember_me']}")
       request.cookies['remember_me'] = 'true'
-      request.cookies['username'] = {value: '"Luther;Martin"', expires: Time.new(2017, 10, 31, 10, 30, 05), httponly: true}
-      request.cookies['password'] = {value: 'by=faith', max_age: 400}
+      request.cookies['username'] = {
+        value: '"Luther;Martin"',
+        expires: Time.new(2017, 10, 31, 10, 30, 0o5),
+        httponly: true
+      }
+      request.cookies['password'] = { value: 'by=faith', max_age: 400 }
     end
 
     cannon_app.get('/delete') do |request, response|
@@ -29,14 +33,12 @@ RSpec.describe 'Cookies', :cannon_app do
 
     cannon_app.get('/update') do |request, response|
       request.cookies['simple'] = 'new value'
-      request.cookies['complex'] = {value: 'more complex', httponly: true}
-      request.signed_cookies['signed'] = {value: 'a signed value'}
+      request.cookies['complex'] = { value: 'more complex', httponly: true }
+      request.signed_cookies['signed'] = { value: 'a signed value' }
       response.send("simple = #{request.cookies['simple']}")
       response.send(" complex = #{request.cookies['complex']}")
       response.send(" signed = #{request.signed_cookies['signed']}")
     end
-
-    cannon_app.listen(async: true)
   end
 
   it 'reads and writes cookies' do
@@ -52,7 +54,7 @@ RSpec.describe 'Cookies', :cannon_app do
     expect(response.body).to eq('username = , password = , remember_me = ')
 
     expect(cookies['username'].httponly).to be true
-    expect(cookies['username'].expires).to eq(Time.new(2017, 10, 31, 10, 30, 05))
+    expect(cookies['username'].expires).to eq(Time.new(2017, 10, 31, 10, 30, 0o5))
     expect(cookies['password'].max_age).to eq(400)
 
     get '/cookies'
@@ -77,7 +79,7 @@ RSpec.describe 'Cookies', :cannon_app do
   end
 
   describe 'signed' do
-    before(:each) do
+    before do
       get '/signed'
       expect(response.body).to eq('secure value = ')
     end

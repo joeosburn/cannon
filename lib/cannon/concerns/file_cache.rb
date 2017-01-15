@@ -1,11 +1,8 @@
 require 'mime/types'
 
+# Concern which provides cached file loading with content types
 module FileCache
-  def self.included(base)
-    base.send(:attr_accessor, :base_path, :cache_key)
-  end
-
-private
+  private
 
   def file(filepath)
     file_and_content_type(filepath)[0]
@@ -24,7 +21,11 @@ private
   end
 
   def mime_type(filepath)
-    MIME::Types.type_for(filepath.split('/').last).first
+    mime_types(filepath.split('/').last).first
+  end
+
+  def mime_types(filename)
+    MIME::Types.type_for(filename)
   end
 
   def cache

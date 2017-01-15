@@ -1,18 +1,16 @@
 require 'spec_helper'
 
 RSpec.describe 'Views', :cannon_app do
-  before(:each) do
-    cannon_app.get('/view') do |request, response|
+  before do
+    cannon_app.get('/view') do |_request, response|
       response.view('test.html')
     end
 
-    cannon_app.get('/render') do |request, response|
+    cannon_app.get('/render') do |_request, response|
       response.context[:name] = 'John Calvin'
       response.context[:greeting] = 'Hello'
       response.view('render_test.html.mustache')
     end
-
-    cannon_app.listen(async: true)
   end
 
   describe 'rendering' do

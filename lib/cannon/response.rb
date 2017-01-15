@@ -1,6 +1,7 @@
 require 'msgpack'
 
 module Cannon
+  # Response object responsible for sending all response data for a request
   class Response
     extend Forwardable
     include Views
@@ -8,11 +9,11 @@ module Cannon
     attr_reader :delegated_response
     attr_accessor :status
 
-    delegate :content => :delegated_response
+    delegate content: :delegated_response
     delegate :content= => :delegated_response
-    delegate :headers => :delegated_response
-    delegate :header => :delegated_response
-    delegate :cookies => :delegated_response
+    delegate headers: :delegated_response
+    delegate header: :delegated_response
+    delegate cookies: :delegated_response
 
     HTTP_STATUS = {
       continue:                      100,
@@ -54,15 +55,13 @@ module Cannon
       bad_gateway:                   502,
       service_unavailable:           503,
       gateway_timeout:               504,
-      http_version_not_supported:    505,
-    }
+      http_version_not_supported:    505
+    }.freeze
 
-    def initialize(delegated_response, app:)
+    def initialize(delegated_response, app)
       @app = app
       @delegated_response = delegated_response
       @flushed = false
-
-      initialize_views
 
       self.status = :ok
     end
@@ -79,11 +78,11 @@ module Cannon
     end
 
     def flush
-      unless flushed?
-        delegated_response.send_headers
-        delegated_response.send_response
-        @flushed = true
-      end
+      return if flushed?
+
+      delegated_response.send_headers
+      delegated_response.send_response
+      @flushed = true
     end
 
     def location_header(location)
@@ -102,16 +101,22 @@ module Cannon
       flush
     end
 
-  private
+    def internal_server_error(title:, content:)
+      html = "<html><head><title>Internal Server Error: #{title}</title></head>" \
+             "<body><h1>#{title}</h1><p>#{content}</p></body></html>"
+      header('Content-Type', 'text/html')
+      send(html, status: :internal_server_error)
+    end
+
+    def not_found
+      send('Not Found', status: :not_found)
+      flush
+    end
+
+    private
 
     def converted_status(status)
-      if status.is_a?(Symbol)
-        HTTP_STATUS[status] || status.to_s
-      elsif status.is_a?(Fixnum)
-        status
-      else
-        status.to_s
-      end
+      status.is_a?(Integer) ? status : (HTTP_STATUS[status] || status.to_s)
     end
   end
 end

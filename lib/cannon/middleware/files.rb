@@ -1,32 +1,45 @@
 module Cannon
   module Middleware
+    # Middleware for handlng raw binary file sending
     class Files
       include FileCache
 
-      attr_accessor :path_array
-
       def initialize(app)
         @app = app
-
-        self.cache_key = :files
-        self.base_path = build_base_path
-        self.path_array = build_path_array
       end
 
       def run(request, response, next_proc)
-        return next_proc.call if request.handled?
+        request.handled? ? next_proc.call : handle(request, response, next_proc)
+      end
 
-        if path_array.include? request.path
+      private
+
+      def handle(request, response, next_proc)
+        if valid_file_request?(request)
           file, content_type = *file_and_content_type("#{base_path}#{request.path}")
           response.header('Content-Type', content_type) if content_type
           response.send(file)
-          request.handle!
+          request.handle
         end
 
         next_proc.call
       end
 
-    private
+      def valid_file_request?(request)
+        path_array.include?(request.path)
+      end
+
+      def cache_key
+        :files
+      end
+
+      def path_array
+        @path_array ||= build_path_array
+      end
+
+      def base_path
+        @base_path ||= prepared_config_public_path
+      end
 
       def build_path_array
         Dir.glob("#{base_path}/**/*").reject { |file| File.directory?(file) }.collect do |name|
@@ -34,8 +47,16 @@ module Cannon
         end
       end
 
-      def build_base_path
-        @app.config.public_path =~ /^\// ? @app.config.public_path : "#{@app.runtime.root}/#{@app.config.public_path}"
+      def prepared_config_public_path
+        config_public_path_relative? ? @app.config[:public_path] : absolute_config_public_path
+      end
+
+      def config_public_path_relative?
+        @app.config[:public_path] =~ %r{^\/}
+      end
+
+      def absolute_config_public_path
+        "#{@app.runtime.root}/#{@app.config[:public_path]}"
       end
     end
   end

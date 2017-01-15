@@ -2,34 +2,21 @@ require 'pry'
 require 'lspace/eventmachine'
 
 module Cannon
-  class AlreadyListening < StandardError; end
-
+  # Base cannon app class
   class App
-    attr_reader :routes, :app_binding
+    extend Forwardable
+
+    attr_reader :routes, :app_binding, :subapps
+
+    delegate ip_address: :runtime, port: :runtime
 
     def initialize(app_binding, port: nil, ip_address: nil)
       @app_binding = app_binding
       @subapps = {}
-      @routes = []
+      @mounted_on = nil
 
-      opts = @app_binding.eval('ARGV')
-      if index = opts.index('-p')
-        port ||= opts[index + 1]
-      end
-
-      runtime.config.port = port unless port.nil?
-      runtime.config.ip_address = ip_address unless ip_address.nil?
-    end
-
-    %w{get post put patch delete head all}.each do |http_method|
-      define_method(http_method) do |path, action: nil, actions: nil, redirect: nil, cache: true, &block|
-        add_route(path,
-          method: http_method.to_sym,
-          actions: [block, action, actions].flatten.compact,
-          redirect: redirect,
-          cache: cache
-        )
-      end
+      runtime.configure(ip_address, port)
+      $LOAD_PATH << runtime.root
     end
 
     def mount(app, at:)
@@ -37,72 +24,9 @@ module Cannon
       app.mount_on(self)
     end
 
-    def listen(port: runtime.config.port, ip_address: runtime.config.ip_address, async: false)
-      if ENV['CONSOLE']
-        command_set = Pry::CommandSet.new {}
-        Pry.start binding, commands: command_set
-        exit
-      end
-
-      raise AlreadyListening, 'App is currently listening' unless @server_thread.nil?
-
-      $LOAD_PATH << runtime.root
-
-      server_block = ->(notifier) do
-        EventMachine::run {
-          server = EventMachine::start_server(ip_address, port, Cannon::Handler) do |handler|
-            handler.app = self
-          end
-          notifier << server unless notifier.nil? # notify the calling thread that the server started if async
-          logger.info "Cannon listening on port #{port}..."
-
-          LSpace.rescue StandardError do |error|
-            if LSpace[:request] && LSpace[:app]
-              LSpace[:app].handle_error(error, request: LSpace[:request])
-            else
-              raise error
-            end
-          end
-        }
-      end
-
-      trap('INT') do
-        puts 'Caught interrupt; shutting down...'
-        stop
-        exit
-      end
-
-      trap('TERM') do
-        puts 'Caught term signal; shutting down...'
-        stop
-        exit
-      end
-
-      if async
-        notification = Queue.new
-        Thread.abort_on_exception = true
-        @server_thread = Thread.new { server_block.call(notification) }
-        notification.pop
-      else
-        server_block.call(nil)
-      end
-    end
-
-    def handle_error(error, request:)
-      logger.error error.message
-      logger.error error.backtrace.join("\n")
-      request.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
-      request.finish
-    end
-
-    def stop
-      return if @server_thread.nil?
-      EventMachine::stop_event_loop
-      @server_thread.join(10)
-      @server_thread.kill unless @server_thread.stop?
-      Thread.abort_on_exception = false
-      @server_thread = nil
-      logger.info "Cannon no longer listening"
+    def console
+      command_set = Pry::CommandSet.new {}
+      Pry.start binding, commands: command_set
     end
 
     def config
@@ -114,7 +38,11 @@ module Cannon
     end
 
     def runtime
-      @mounted_on&.runtime || (@runtime ||= Runtime.new(@app_binding))
+      if @mounted_on
+        @mounted_on.runtime
+      else
+        @runtime ||= Runtime.new(@app_binding)
+      end
     end
 
     def cache
@@ -125,60 +53,31 @@ module Cannon
       runtime.logger
     end
 
+    def handle_error(error, request, response)
+      request.handle
+      log_error(error)
+      send_response_error(response, error)
+      request.finish
+    end
+
     def handle(request, response)
-      @subapps.each do |mounted_at, subapp|
-        mount_matcher = /^#{mounted_at}/
-
-        if request.path =~ mount_matcher
-          original_path = request.path.dup
-          request.path.gsub!(mount_matcher, '')
+      subapps.each do |mounted_at, subapp|
+        request.attempt_mount(mounted_at) do
           subapp.handle(request, response)
-          request.path = original_path
         end
-
-        return if request.handled?
       end
-
-      middleware_runner.run(request, response) unless config.middleware.size == 0
     end
 
-  private
+    private
 
-    def middleware_runner
-      @middleware_runner ||= build_middleware_runner(prepared_middleware_stack)
+    def send_response_error(response, error)
+      response.internal_server_error(title: error.message, content: error.backtrace.join('<br/>'))
+      response.flush
     end
 
-    def prepared_middleware_stack
-      config.middleware.dup
-    end
-
-    def build_middleware_runner(middleware, callback: nil)
-      return callback if middleware.size < 1
-
-      middleware_runner = MiddlewareRunner.new(middleware.pop, callback: callback, app: self)
-      build_middleware_runner(middleware, callback: middleware_runner)
-    end
-
-    def add_route(path, method:, actions:, redirect:, cache:, &block)
-      route = Route.new(path, app: self, method: method, actions: actions, redirect: redirect, cache: cache)
-      routes << route
-      more_actions(route)
-    end
-
-    def more_actions(route)
-      MoreActions.new(self, route)
-    end
-
-    class MoreActions
-      def initialize(app, route)
-        @app = app
-        @route = route
-      end
-
-      def action(&block)
-        @route.add_route_action(block)
-        self
-      end
+    def log_error(error)
+      logger.error error.message
+      logger.error error.backtrace.join("\n")
     end
   end
 end

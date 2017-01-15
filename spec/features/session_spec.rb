@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Session', :cannon_app do
-  before(:each) do
+  before do
     cannon_app.get('/member') do |request, response|
       if request.session['logged_in'] != 'true'
         response.temporary_redirect('/login')
@@ -35,8 +35,6 @@ RSpec.describe 'Session', :cannon_app do
       response.send("logged_in = '#{request.session['logged_in']}',")
       response.send(" username nil? = #{request.session['username'].nil?}")
     end
-
-    cannon_app.listen(async: true)
   end
 
   it 'maintains session between requests' do

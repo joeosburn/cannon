@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe 'Method types', :cannon_app do
-  before(:each) do
-    cannon_app.get('/hi') do |request, response|
+  before do
+    cannon_app.get('/hi') do |_request, response|
       response.send('hi')
     end
 
@@ -10,7 +10,7 @@ RSpec.describe 'Method types', :cannon_app do
       response.send("key = #{request.params[:key]}, place = #{request.params[:place]}")
     end
 
-    cannon_app.post('/hi') do |request, response|
+    cannon_app.post('/hi') do |_request, response|
       response.send('created!', status: :created)
     end
 
@@ -38,8 +38,6 @@ RSpec.describe 'Method types', :cannon_app do
     cannon_app.all('/any') do |request, response|
       response.send("request method = #{request.method}")
     end
-
-    cannon_app.listen(async: true)
   end
 
   it 'handles get requests' do
