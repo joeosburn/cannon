@@ -105,7 +105,7 @@ module Cannon
     end
 
     def start_cannon_app
-      Cannon::App.new(binding, port: DEFAULT_PORT, ip_address: '127.0.0.1').tap do |app|
+      Cannon::App.new(port: DEFAULT_PORT, ip_address: '127.0.0.1').tap do |app|
         default_runtime_config(app.runtime.config)
         default_app_config(app.config)
         start_cannon_server(app)

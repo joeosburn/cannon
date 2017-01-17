@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe 'Subapps', :cannon_app do
   before do
-    admin_app = Cannon::App.new(binding)
+    admin_app = Cannon::App.new
     admin_app.get('/login') do |_request, response|
       response.send('Send your login info')
     end
@@ -11,13 +11,13 @@ RSpec.describe 'Subapps', :cannon_app do
     end
     cannon_app.mount(admin_app, at: '/admin')
 
-    resources_app = Cannon::App.new(binding)
+    resources_app = Cannon::App.new
     resources_app.get('/') do |_request, response|
       response.send('resources admin')
     end
     admin_app.mount(resources_app, at: '/resources')
 
-    catalog_app = Cannon::App.new(binding)
+    catalog_app = Cannon::App.new
     catalog_app.get('/') do |_request, response|
       response.send('catalog index')
     end

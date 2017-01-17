@@ -6,17 +6,15 @@ module Cannon
   class App
     extend Forwardable
 
-    attr_reader :routes, :app_binding, :subapps
+    attr_reader :routes, :subapps
 
-    delegate ip_address: :runtime, port: :runtime
+    delegate ip_address: :runtime, port: :runtime, root: :runtime
 
-    def initialize(app_binding, port: nil, ip_address: nil)
-      @app_binding = app_binding
+    def initialize(port: nil, ip_address: nil)
       @subapps = {}
       @mounted_on = nil
-
-      runtime.configure(ip_address, port)
-      $LOAD_PATH << runtime.root
+      @runtime ||= Runtime.new(File.dirname(caller[2].split(':')[0]), ip_address, port)
+      $LOAD_PATH << root
     end
 
     def mount(app, at:)
@@ -38,11 +36,7 @@ module Cannon
     end
 
     def runtime
-      if @mounted_on
-        @mounted_on.runtime
-      else
-        @runtime ||= Runtime.new(@app_binding)
-      end
+      @mounted_on ? @mounted_on.runtime : @runtime
     end
 
     def cache

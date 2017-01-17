@@ -96,21 +96,17 @@ module Cannon
     end
   end
 
-  # RouteAction which calls a method from the binding of the app instantiation
+  # RouteAction which calls a method on Kernel of the app instantiation
   class BoundRouteAction < RouteAction
     def run_action(request, response, next_proc)
       app.logger.debug "Action: #{action}"
 
-      if app_binding.method(action).arity == 2
-        app_binding.send(action, request, response)
+      if Kernel.method(action).arity == 2
+        Kernel.send(action, request, response)
         next_proc.call
       else
-        app_binding.send(action, request, response, next_proc)
+        Kernel.send(action, request, response, next_proc)
       end
-    end
-
-    def app_binding
-      @app_binding ||= app.app_binding
     end
   end
 

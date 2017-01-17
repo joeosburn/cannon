@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe Cannon::Runtime do
-  let(:runtime) { Cannon::Runtime.new(binding) }
+  let(:runtime) { Cannon::Runtime.new(File.dirname(__FILE__), :ip, :port) }
 
   describe '#load_env' do
     it 'loads a yaml file into ENV' do

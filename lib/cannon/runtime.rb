@@ -5,14 +5,11 @@ module Cannon
   # There will only be one runtime instance per running app of cannon, while there may be several Cannon
   # apps in a single running Cannon instance, each with their own config.
   class Runtime
-    attr_reader :cache
+    attr_reader :cache, :root
 
-    def initialize(app_binding)
-      @app_binding = app_binding
+    def initialize(root, ip_address, port)
+      @root = Pathname.new(root)
       @cache = {}
-    end
-
-    def configure(ip_address, port)
       config[:ip_address] = ip_address if ip_address
       config[:port] = port if port
     end
@@ -31,10 +28,6 @@ module Cannon
 
     def logger
       config[:logger]
-    end
-
-    def root
-      @root ||= Pathname.new(@app_binding.eval('File.expand_path(File.dirname(__FILE__))'))
     end
 
     def load_env(yaml_filename:)

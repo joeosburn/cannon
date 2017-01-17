@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe Cannon::Response do
   let(:delegated_response) { double(Object) }
-  let(:app) { Cannon::App.new(binding) }
+  let(:app) { Cannon::App.new }
   let(:response) { described_class.new(delegated_response, app: app) }
 
   describe '#flush' do

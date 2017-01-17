@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe Cannon::Route do
-  let(:app) { Cannon::App.new(binding) }
+  let(:app) { Cannon::App.new }
 
   describe '#matches?' do
     context 'the methods do not match' do
