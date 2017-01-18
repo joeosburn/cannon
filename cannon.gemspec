@@ -17,14 +17,14 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.test_files = Dir['spec/**/*']
 
-  spec.add_dependency 'eventmachine', '~> 1.0.8'
+  spec.add_dependency 'eventmachine', '~> 1.2.0'
   spec.add_dependency 'eventmachine_httpserver'
-  spec.add_dependency 'mime-types', '~> 2.6.2'
-  spec.add_dependency 'mustache', '~> 1.0.2'
-  spec.add_dependency 'pry', '~> 0.10.3'
+  spec.add_dependency 'mime-types', '~> 3.1'
+  spec.add_dependency 'mustache', '~> 1.0.0'
+  spec.add_dependency 'pry', '~> 0.10.0'
   spec.add_dependency 'msgpack', '~> 1.0.0'
   spec.add_dependency 'lspace', '~> 0.13'
-  spec.add_dependency 'listen', '~> 3.0.6'
+  spec.add_dependency 'listen', '~> 3.1.0'
 
   spec.add_development_dependency 'rspec', '~> 3.3.0'
   spec.add_development_dependency 'http-cookie', '~> 1.0.2'
