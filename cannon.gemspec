@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'mime-types', '~> 2.6.2'
   spec.add_dependency 'mustache', '~> 1.0.2'
   spec.add_dependency 'pry', '~> 0.10.3'
-  spec.add_dependency 'msgpack', '~> 0.7.1'
+  spec.add_dependency 'msgpack', '~> 1.0.0'
   spec.add_dependency 'lspace', '~> 0.13'
   spec.add_dependency 'listen', '~> 3.0.6'
 
