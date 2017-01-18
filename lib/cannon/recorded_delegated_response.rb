@@ -48,6 +48,10 @@ module Cannon
       @delegated_response.send(sym, *args, &block)
     end
 
+    def respond_to_missing?(method_name, _include_private = false)
+      @delegated_response.respond_to?(method_name)
+    end
+
     private
 
     def method_stack

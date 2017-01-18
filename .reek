@@ -26,6 +26,11 @@ TooManyStatements:
 BooleanParameter:
   exclude:
     - "Cannon::Environment#respond_to_missing?"
+    - "Cannon::RecordedDelegatedResponse#respond_to_missing?"
+
+ManualDispatch:
+  exclude:
+    - "Cannon::RecordedDelegatedResponse#respond_to_missing?"
 
 exclude_paths:
   - spec/features
