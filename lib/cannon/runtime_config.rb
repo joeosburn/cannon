@@ -58,24 +58,13 @@ module Cannon
 
       def logger_formatter_proc
         proc do |_severity, _datetime, _progname, msg|
-          if currrent_request_has_request_id?
-            "request_id=#{current_request_id} #{msg}\n"
+          request = LSpace[:request]
+          if request && request.request_id
+            "request_id=#{request.request_id} #{msg}\n"
           else
             "#{msg}\n"
           end
         end
-      end
-
-      def current_request_has_request_id?
-        current_request && current_request_id
-      end
-
-      def current_request_id
-        current_request.request_id
-      end
-
-      def current_request
-        LSpace[:request]
       end
 
       # Runtime config for cookies
