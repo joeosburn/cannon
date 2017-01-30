@@ -17,8 +17,6 @@ module Cannon
       }.freeze
 
       def initialize
-        self.ip_address = '127.0.0.1'
-        self.port = 5030
         self.cache_app = true
         self.benchmark_requests = true
         @log_level = :info
@@ -29,7 +27,7 @@ module Cannon
 
       protected
 
-      attr_accessor :cache_app, :benchmark_requests, :port, :ip_address, :generate_request_ids
+      attr_accessor :cache_app, :benchmark_requests, :generate_request_ids
       attr_reader :logger, :log_level
 
       def logger=(value)

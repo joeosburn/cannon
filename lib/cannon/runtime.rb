@@ -7,19 +7,9 @@ module Cannon
   class Runtime
     attr_reader :cache, :root
 
-    def initialize(root, ip_address, port)
+    def initialize(root)
       @root = Pathname.new(root)
       @cache = {}
-      config[:ip_address] = ip_address if ip_address
-      config[:port] = port if port
-    end
-
-    def ip_address
-      config[:ip_address]
-    end
-
-    def port
-      config[:port]
     end
 
     def config

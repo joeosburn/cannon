@@ -8,12 +8,12 @@ module Cannon
 
     attr_reader :routes, :subapps
 
-    delegate ip_address: :runtime, port: :runtime, root: :runtime
+    delegate root: :runtime
 
-    def initialize(port: nil, ip_address: nil)
+    def initialize
       @subapps = {}
       @mounted_on = nil
-      @runtime ||= Runtime.new(File.dirname(caller[2].split(':')[0]), ip_address, port)
+      @runtime ||= Runtime.new(File.dirname(caller[2].split(':')[0]))
       $LOAD_PATH << root
     end
 

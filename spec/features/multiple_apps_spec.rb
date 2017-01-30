@@ -2,17 +2,17 @@ require 'spec_helper'
 
 RSpec.describe 'Multiple apps at once', :cannon_app do
   let(:app2) do
-    app = Cannon::App.new(port: 5032, ip_address: '127.0.0.1')
+    app = Cannon::App.new
     app.runtime.config[:log_level] = :error
-    start_cannon_server(app)
+    start_cannon_server(app, port: 5032, ip_address: '127.0.0.1')
     app
   end
 
   let(:app3) do
-    app = Cannon::App.new(port: 5033, ip_address: '127.0.0.1')
+    app = Cannon::App.new
     app.runtime.config[:log_level] = :fatal
     app.config[:middleware] = %w(RequestLogger Files Session Flash Router ContentType)
-    start_cannon_server(app)
+    start_cannon_server(app, port: 5033, ip_address: '127.0.0.1')
     app
   end
 

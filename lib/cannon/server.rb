@@ -4,12 +4,12 @@ module Cannon
     extend Forwardable
 
     class << self
-      def start(app)
-        trap_signals(start_server(app)).pop
+      def start(app, port: nil, ip_address: nil)
+        trap_signals(start_server(app, ip_address, port)).pop
       end
 
-      def start_async(app)
-        start_server(app).tap { |server| trap_signals(server) }
+      def start_async(app, port: nil, ip_address: nil)
+        start_server(app, ip_address, port).tap { |server| trap_signals(server) }
       end
 
       def stop(server, notifier = nil)
@@ -21,8 +21,8 @@ module Cannon
 
       private
 
-      def start_server(app)
-        new(app).tap { |server| server.notifier.pop }
+      def start_server(app, ip_address, port)
+        new(app, ip_address, port).tap { |server| server.notifier.pop }
       end
 
       def trap_signals(server)
@@ -40,13 +40,13 @@ module Cannon
       end
     end
 
-    attr_reader :app
+    attr_reader :app, :port, :ip_address
 
-    delegate logger: :app, ip_address: :app, port: :app
+    delegate logger: :app
 
     def initialize(*args)
       self.class.abort_on_exception = true
-      @app = args[0]
+      assign_args(*args)
       super(args) { server_proc.call(app, notifier) }
       logger.info "Cannon listening on port #{port}..."
     end
@@ -64,10 +64,16 @@ module Cannon
 
     private
 
+    def assign_args(*args)
+      @app = args[0]
+      @ip_address = args[1] || '127.0.0.1'
+      @port = args[2] || 5030
+    end
+
     def server_proc
       proc do |app, notifier|
         EventMachine.run do
-          EventMachine.start_server(app.ip_address, app.port, Cannon::RequestHandler, &new_handler_proc(app))
+          EventMachine.start_server(ip_address, port, Cannon::RequestHandler, &new_handler_proc(app))
           LSpace.rescue(StandardError, &lspace_rescue_proc)
           notifier << self
         end
