@@ -6,13 +6,12 @@ module Cannon
   class App
     extend Forwardable
 
-    attr_reader :routes, :subapps
+    attr_reader :routes, :subapps, :runtime
 
     delegate root: :runtime
 
     def initialize
       @subapps = {}
-      @mounted_on = nil
       @runtime ||= Runtime.new(File.dirname(caller[2].split(':')[0]))
       $LOAD_PATH << root
     end
@@ -32,11 +31,7 @@ module Cannon
     end
 
     def mount_on(app)
-      @mounted_on = app
-    end
-
-    def runtime
-      @mounted_on ? @mounted_on.runtime : @runtime
+      @runtime = app.runtime
     end
 
     def cache
