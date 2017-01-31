@@ -10,13 +10,13 @@ RSpec.describe Cannon::ActionCache do
       before { cache['action_cache_action'] = :action }
 
       it 'returns true' do
-        expect(action_cache.cached?).to be(true)
+        expect(action_cache).to be_cached
       end
     end
 
     context 'a cache entry does not exist' do
       it 'returns false' do
-        expect(action_cache.cached?).to be(false)
+        expect(action_cache).to_not be_cached
       end
     end
   end
