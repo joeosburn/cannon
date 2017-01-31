@@ -9,6 +9,8 @@ module Cannon
     attr_reader :routes, :subapps, :runtime
 
     delegate root: :runtime
+    delegate logger: :runtime
+    delegate cache: :runtime
 
     def initialize
       @subapps = {}
@@ -32,14 +34,6 @@ module Cannon
 
     def mount_on(app)
       @runtime = app.runtime
-    end
-
-    def cache
-      runtime.cache
-    end
-
-    def logger
-      runtime.logger
     end
 
     def handle_error(error, request, response)
