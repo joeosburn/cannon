@@ -4,12 +4,12 @@ module Cannon
     extend Forwardable
 
     class << self
-      def start(app, port: nil, ip_address: nil)
-        trap_signals(start_server(app, ip_address, port)).pop
+      def start(app, options = {})
+        trap_signals(start_server(app, OptionsBuilder.new(options).merge.options)).pop
       end
 
-      def start_async(app, port: nil, ip_address: nil)
-        start_server(app, ip_address, port).tap { |server| trap_signals(server) }
+      def start_async(app, options = {})
+        start_server(app, OptionsBuilder.new(options).merge.options).tap { |server| trap_signals(server) }
       end
 
       def stop(server, notifier = nil)
@@ -21,8 +21,8 @@ module Cannon
 
       private
 
-      def start_server(app, ip_address, port)
-        new(app, ip_address, port).tap { |server| server.notifier.pop }
+      def start_server(app, options)
+        new(app, options[:ip_address], options[:port]).tap { |server| server.notifier.pop }
       end
 
       def trap_signals(server)
@@ -48,7 +48,7 @@ module Cannon
       self.class.abort_on_exception = true
       assign_args(*args)
       super(args) { server_proc.call(app, notifier) }
-      logger.info "Cannon listening on port #{port}..."
+      logger.info "Cannon listening on #{ip_address}, port #{port}..."
     end
 
     def stop(notifier = nil)
@@ -91,6 +91,41 @@ module Cannon
 
     def new_handler_proc(app)
       proc { |handler| handler.start(app) }
+    end
+
+    # Builds options for server
+    class OptionsBuilder
+      attr_reader :options
+
+      def initialize(options)
+        @options = options
+      end
+
+      def merge(args = ARGV)
+        options_parser.parse!(args)
+        self
+      end
+
+      private
+
+      def options_parser
+        @options_parser ||= OptionParser.new do |opts|
+          opts.banner = "#{Pathname.new($PROGRAM_NAME).basename} #{ARGV[0]} [options]"
+
+          opts.on('-pPORT', '--port=PORT', 'Port to run on') do |port|
+            options[:port] ||= port
+          end
+
+          opts.on('-bBINDING', '--binding=IP', 'IP Address to run on') do |ip_address|
+            options[:ip_address] ||= ip_address
+          end
+
+          opts.on('-h', '--help', 'Prints this help') do
+            puts opts
+            exit
+          end
+        end
+      end
     end
   end
 end
