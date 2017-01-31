@@ -17,11 +17,6 @@ module Cannon
       $LOAD_PATH << root
     end
 
-    def mount(app, at:)
-      @subapps[at] = app
-      app.mount_on(self)
-    end
-
     def console
       command_set = Pry::CommandSet.new {}
       Pry.start binding, commands: command_set
@@ -29,6 +24,11 @@ module Cannon
 
     def config
       @config ||= Config.new
+    end
+
+    def mount(app, at:)
+      subapps[at] = app
+      app.mount_on(self)
     end
 
     def mount_on(app)
