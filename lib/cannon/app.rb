@@ -13,7 +13,6 @@ module Cannon
     delegate cache: :runtime
 
     def initialize
-      @subapps = {}
       @runtime ||= Runtime.new(File.dirname(caller[2].split(':')[0]))
       $LOAD_PATH << root
     end
@@ -34,6 +33,10 @@ module Cannon
 
     def mount_on(app)
       @runtime = app.runtime
+    end
+
+    def subapps
+      @subapps ||= {}
     end
 
     def handle_error(error, request, response)
