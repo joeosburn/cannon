@@ -1,4 +1,3 @@
-require 'pry'
 require 'lspace/eventmachine'
 
 module Cannon
@@ -15,11 +14,6 @@ module Cannon
     def initialize
       @runtime ||= Runtime.new(File.dirname(caller[2].split(':')[0]))
       $LOAD_PATH << root
-    end
-
-    def console
-      command_set = Pry::CommandSet.new {}
-      Pry.start binding, commands: command_set
     end
 
     def config
