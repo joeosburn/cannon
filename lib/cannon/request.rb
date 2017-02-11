@@ -23,7 +23,7 @@ module Cannon
 
     def at_mount_point(mount_point)
       mount_point_paths << path.gsub(/^#{mount_point}/, '')
-      yield if mount_point_paths.last != full_path
+      yield if mount_point_paths[-1] != mount_point_paths[-2]
       mount_point_paths.pop
     end
 
@@ -58,7 +58,7 @@ module Cannon
     private
 
     def mount_point_paths
-      @mount_point_paths ||= []
+      @mount_point_paths ||= [full_path]
     end
 
     def map_headers
