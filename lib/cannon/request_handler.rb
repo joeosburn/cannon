@@ -38,9 +38,10 @@ module Cannon
     end
 
     def handle_request
+      request.start_benchmarking if app.runtime.config[:benchmark_requests]
       app.handle(request, response)
       response.not_found unless request.handled?
-      request.finish
+      request.benchmark_request(logger: app.logger) if app.runtime.config[:benchmark_requests]
     end
   end
 end

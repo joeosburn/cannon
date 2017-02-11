@@ -11,13 +11,6 @@ module Cannon
     def initialize(env, app)
       @app = app
       @env = env
-      start_benchmarking if app.runtime.config[:benchmark_requests]
-    end
-
-    def finish
-      return unless @app.runtime.config[:benchmark_requests]
-      stop_benchmarking
-      benchmark_request(logger: @app.logger)
     end
 
     def handled?

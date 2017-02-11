@@ -37,7 +37,6 @@ module Cannon
       request.handle
       log_error(error)
       send_response_error(response, error)
-      request.finish
     end
 
     def handle(request, response)
