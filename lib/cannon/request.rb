@@ -18,17 +18,21 @@ module Cannon
       post_content: 'http_post_content',
       http_headers: 'http_headers'
     }.each do |attr, server_attr|
-      define_method(attr) do
-        @http_server.instance_variable_get("@#{server_attr}") || ''
-      end
+      define_method(attr) { http_server.send(server_attr) || '' }
     end
 
     def initialize(http_server, app)
-      @path = http_server.instance_variable_get('@http_path_info')
-      @http_server = http_server
       @app = app
-      @handled = false
-      start_benchmarking if @app.runtime.config[:benchmark_requests]
+      @http_server = http_server
+      start_benchmarking if app.runtime.config[:benchmark_requests]
+    end
+
+    def path
+      mount_point_paths.last || full_path
+    end
+
+    def full_path
+      http_server.http_path_info
     end
 
     def finish
@@ -38,54 +42,44 @@ module Cannon
     end
 
     def params
-      @params ||= parse_params
+      @params ||= map_params
+    end
+
+    def headers
+      @headers ||= map_headers(http_server.http_headers)
     end
 
     def handled?
-      @handled
+      @handled || false
     end
 
     def handle
       @handled = true
     end
 
-    def headers
-      @headers ||= parse_headers
-    end
-
     def to_s
       "#{method} #{path}"
     end
 
-    def attempt_mount(mount_point)
-      matcher = /^#{mount_point}/
-      return unless @path =~ matcher
-
-      mount(matcher)
-      yield
-      unmount
-    end
-
-    def mount(matcher)
-      mount_paths << @path
-      @path = @path.gsub(matcher, '')
-    end
-
-    def unmount
-      @path = mount_paths.pop
+    def at_mount_point(mount_point)
+      mount_point_paths << path.gsub(/^#{mount_point}/, '')
+      yield if mount_point_paths.last != full_path
+      mount_point_paths.pop
     end
 
     private
 
-    def mount_paths
-      @mount_paths ||= []
+    def mount_point_paths
+      @mount_point_paths ||= []
     end
 
-    def parse_headers
+    attr_reader :http_server
+
+    def map_headers(http_headers)
       Hash[http_headers.split("\x00").map { |header| header.split(': ', 2) }]
     end
 
-    def parse_params
+    def map_params
       case method.downcase
       when 'get'
         Hash[mapped_query_params]

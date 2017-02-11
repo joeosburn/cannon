@@ -41,8 +41,8 @@ module Cannon
     end
 
     def handle(request, response)
-      subapps.each do |mounted_at, subapp|
-        request.attempt_mount(mounted_at) do
+      subapps.each do |mount_point, subapp|
+        request.at_mount_point(mount_point) do
           subapp.handle(request, response)
         end
       end

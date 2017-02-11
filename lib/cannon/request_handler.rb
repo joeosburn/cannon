@@ -4,6 +4,8 @@ module Cannon
     include EventMachine::HttpServer
 
     attr_reader :app
+    attr_reader :http_protocol, :http_request_method, :http_cookie, :http_content_type, :http_request_uri,
+                :http_query_string, :http_post_content, :http_headers, :http_path_info
 
     def process_http_request
       LSpace.with(request: request, response: response, app: app) do
