@@ -59,7 +59,7 @@ module Cannon
     end
 
     def to_s
-      "#{method} #{path}"
+      "#{method} #{full_path}"
     end
 
     private
