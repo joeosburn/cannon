@@ -14,26 +14,10 @@ module Cannon
       start_benchmarking if app.runtime.config[:benchmark_requests]
     end
 
-    def path
-      mount_point_paths.last || full_path
-    end
-
-    def full_path
-      env['http_path_info']
-    end
-
     def finish
       return unless @app.runtime.config[:benchmark_requests]
       stop_benchmarking
       benchmark_request(logger: @app.logger)
-    end
-
-    def params
-      @params ||= map_params
-    end
-
-    def headers
-      @headers ||= map_headers
     end
 
     def handled?
@@ -44,14 +28,26 @@ module Cannon
       @handled = true
     end
 
-    def to_s
-      "#{method} #{path}"
-    end
-
     def at_mount_point(mount_point)
       mount_point_paths << path.gsub(/^#{mount_point}/, '')
       yield if mount_point_paths.last != full_path
       mount_point_paths.pop
+    end
+
+    def params
+      @params ||= map_params
+    end
+
+    def headers
+      @headers ||= map_headers
+    end
+
+    def path
+      mount_point_paths.last || full_path
+    end
+
+    def full_path
+      env['http_path_info']
     end
 
     def protocol
@@ -60,6 +56,10 @@ module Cannon
 
     def method
       env['http_request_method']
+    end
+
+    def to_s
+      "#{method} #{path}"
     end
 
     private
