@@ -6,24 +6,11 @@ module Cannon
     include RequestId
     include Benchmarkable
 
-    attr_reader :app, :path
+    attr_reader :app, :env
 
-    {
-      protocol: 'http_protocol',
-      method: 'http_request_method',
-      http_cookie: 'http_cookie',
-      content_type: 'http_content_type',
-      uri: 'http_request_uri',
-      query_string: 'http_query_string',
-      post_content: 'http_post_content',
-      http_headers: 'http_headers'
-    }.each do |attr, server_attr|
-      define_method(attr) { http_server.send(server_attr) || '' }
-    end
-
-    def initialize(http_server, app)
+    def initialize(env, app)
       @app = app
-      @http_server = http_server
+      @env = env
       start_benchmarking if app.runtime.config[:benchmark_requests]
     end
 
@@ -32,7 +19,7 @@ module Cannon
     end
 
     def full_path
-      http_server.http_path_info
+      env['http_path_info']
     end
 
     def finish
@@ -46,7 +33,7 @@ module Cannon
     end
 
     def headers
-      @headers ||= map_headers(http_server.http_headers)
+      @headers ||= map_headers
     end
 
     def handled?
@@ -67,16 +54,22 @@ module Cannon
       mount_point_paths.pop
     end
 
+    def protocol
+      env['http_protocol']
+    end
+
+    def method
+      env['http_request_method']
+    end
+
     private
 
     def mount_point_paths
       @mount_point_paths ||= []
     end
 
-    attr_reader :http_server
-
-    def map_headers(http_headers)
-      Hash[http_headers.split("\x00").map { |header| header.split(': ', 2) }]
+    def map_headers
+      Hash[env['http_headers'].split("\x00").map { |header| header.split(': ', 2) }]
     end
 
     def map_params
@@ -89,11 +82,11 @@ module Cannon
     end
 
     def mapped_query_params
-      CGI.parse(query_string).map { |(key, value)| [key.to_sym, value.last] }
+      CGI.parse(env['http_query_string']).map { |(key, value)| [key.to_sym, value.last] }
     end
 
     def mapped_post_params
-      CGI.parse(post_content).map { |(key, value)| [key.to_sym, value.first] }
+      CGI.parse(env['http_post_content']).map { |(key, value)| [key.to_sym, value.first] }
     end
   end
 end

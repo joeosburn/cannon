@@ -67,7 +67,7 @@ module Cannon
     end
 
     def cookies
-      @cookies ||= HttpCookieParser.new(@request.http_cookie).parse
+      @cookies ||= HttpCookieParser.new(@request.env['http_cookie']).parse
     end
 
     private
