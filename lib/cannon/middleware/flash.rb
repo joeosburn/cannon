@@ -12,9 +12,13 @@ module Cannon
 
       private
 
+      attr_reader :app
+
       def handle(request, _response, next_proc)
+        app = @app
+        
         request.define_singleton_method(:flash) do
-          @flash ||= Cannon::Flash.new(@app, cookie_jar: request.signed_cookies)
+          @flash ||= Cannon::Flash.new(app.runtime.config[:session][:cookie_name], cookie_jar: request.signed_cookies)
         end
 
         next_proc.call
@@ -24,7 +28,7 @@ module Cannon
 
   # Flash object which inherits from session
   class Flash < Cannon::Session
-    def initialize(app, cookie_jar:)
+    def initialize(name, cookie_jar:)
       super
       @flash = read_cookie
       @session_cookie = {}

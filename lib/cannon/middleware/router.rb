@@ -35,6 +35,7 @@ module Cannon
         return unless route
 
         request.params.merge!(route.path_params(request.path)) if route.needs_params?
+
         routes[route].handle(request, response, next_proc)
       end
     end

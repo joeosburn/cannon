@@ -16,12 +16,14 @@ module Cannon
       private
 
       def handle(request, response, next_proc)
+        app = @app
+
         request.define_singleton_method(:cookies) do
-          @cookie_jar ||= CookieJar.new(request, response)
+          @cookie_jar ||= CookieJar.new(request, response, secret: app.runtime.config[:cookies][:secret])
         end
 
         request.define_singleton_method(:signed_cookies) do
-          @signed_cookie_jar ||= SignedCookieJar.new(request, response)
+          @signed_cookie_jar ||= SignedCookieJar.new(request, response, secret: app.runtime.config[:cookies][:secret])
         end
 
         next_proc.call
@@ -31,9 +33,10 @@ module Cannon
 
   # Cookie jar which reads from a http_cookie value and assigns cookies
   class CookieJar
-    def initialize(request, response)
+    def initialize(request, response, secret: nil)
       @request = request
       @response = response
+      @secret = secret
       @assigned_cookies = {}
     end
 
@@ -101,10 +104,6 @@ module Cannon
       return value unless value =~ /([\x00-\x20\x7F",;\\])/
       "\"#{value.gsub(/([\\"])/, '\\\\\\1')}\""
     end
-
-    def app
-      @request.app
-    end
   end
 
   # Signed cookie jar which handles verified cookies
@@ -117,7 +116,7 @@ module Cannon
     end
 
     def cookie_value(cookie_hash)
-      cookie_hash['signature'] = signature(cookie_hash['value'], app)
+      cookie_hash['signature'] = signature(cookie_hash['value'], @secret)
       super(cookie_hash)
     end
 
@@ -140,7 +139,7 @@ module Cannon
     end
 
     def signature_match?(cookie)
-      cookie['signature'] == signature(cookie['value'], app)
+      cookie['signature'] == signature(cookie['value'], @secret)
     end
   end
 end
