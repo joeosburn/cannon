@@ -22,12 +22,11 @@ module Cannon
         @log_level = :info
         $stdout.sync = true
         self.logger = Logger.new($stdout)
-        self.generate_request_ids = false
       end
 
       protected
 
-      attr_accessor :cache_app, :benchmark_requests, :generate_request_ids
+      attr_accessor :cache_app, :benchmark_requests
       attr_reader :logger, :log_level
 
       def logger=(value)

@@ -19,8 +19,6 @@ module RequestId
   end
 
   def generate_request_id
-    return nil unless app.runtime.config[:generate_request_ids]
-
     id = SecureRandom.hex(18)
     [8, 13, 18, 23].each { |pos| id[pos] = '-' }
     id
