@@ -6,10 +6,10 @@ module Cannon
     include RequestId
     include Benchmarkable
 
-    attr_reader :app, :env
+    attr_reader :env
+    attr_accessor :app
 
-    def initialize(env, app)
-      @app = app
+    def initialize(env)
       @env = env
     end
 

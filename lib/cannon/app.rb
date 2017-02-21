@@ -40,6 +40,9 @@ module Cannon
     end
 
     def handle(request, response)
+      request.app = self
+      response.app = self
+
       subapps.each do |mount_point, subapp|
         request.at_mount_point(mount_point) do
           subapp.handle(request, response)

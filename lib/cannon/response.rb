@@ -7,7 +7,7 @@ module Cannon
     include Views
 
     attr_reader :delegated_response
-    attr_accessor :status
+    attr_accessor :status, :app
 
     delegate content: :delegated_response
     delegate :content= => :delegated_response
@@ -58,8 +58,7 @@ module Cannon
       http_version_not_supported:    505
     }.freeze
 
-    def initialize(delegated_response, app)
-      @app = app
+    def initialize(delegated_response)
       @delegated_response = delegated_response
       @flushed = false
 
