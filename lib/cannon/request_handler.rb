@@ -22,19 +22,19 @@ module Cannon
     ATTRIBUTES = %w(http_protocol http_request_method http_cookie http_content_type http_request_uri http_query_string
                     http_post_content http_headers http_path_info)
     def to_h
-      hash = {}
-      ATTRIBUTES.each { |attr| hash[attr] = instance_variable_get("@#{attr}") || '' }
-      hash
+      {}.tap do |hash|
+        ATTRIBUTES.each { |attr| hash[attr] = instance_variable_get("@#{attr}") || '' }
+      end
     end
 
     private
 
     def request
-      @request ||= Request.new(self.to_h, app)
+      @request ||= Request.new(self.to_h)
     end
 
     def response
-      @response ||= Response.new(RecordedDelegatedResponse.new(self), app)
+      @response ||= Response.new(RecordedDelegatedResponse.new(self))
     end
 
     def handle_request
