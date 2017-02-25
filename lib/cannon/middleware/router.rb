@@ -16,10 +16,9 @@ module Cannon
 
       def handle(request, response, next_proc)
         route = @app.routes.route_for_request(request)
-        return unless route
+        return next_proc.call unless route
 
         request.params.merge!(route.path_params(request.path)) if route.needs_params?
-
         @app.routes[route].handle(request, response, next_proc)
       end
     end

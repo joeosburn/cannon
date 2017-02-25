@@ -12,47 +12,52 @@ module Cannon
   class MiddlewareRunner
     include EventMachine::Deferrable
 
-    attr_reader :ware
-
-    def initialize(ware_name, callback:, app:)
-      @app = app
-      @ware = app.middleware[ware_name]
-      @callback = callback
+    def initialize(wares, request, response)
+      @wares = wares
+      @request = request
+      @response = response
+      @index = -1
     end
 
-    def run(request, response)
+    attr_reader :wares, :request, :response
+
+    def run
       next_proc = lambda do
         setup_callback
         succeed(request, response)
       end
 
-      ware.run(request, response, next_proc)
+      if ware = wares[@index += 1]
+        ware.run(request, response, next_proc)
+      elsif request.handled?
+        response.flush
+        request.emit('finish', request, response)
+      else
+        response.not_found
+      end
     end
 
     private
 
     def setup_callback
       set_deferred_status nil
-      callback do |request, response|
-        if @callback
-          @callback.run(request, response)
-        elsif request.handled?
-          response.flush
-          request.emit('finish', request, response)
-        end
-      end
+      callback { |request, response| run }
     end
   end
 
-  # Holds the middlewares in a hash accessible by name and handles instantation
+  # Holds instantiated middlewares
   class Middlewares
-    def initialize(app)
-      @wares = Hash.new { |wares, name| wares[name] = instantiate(name) }
+    def initialize(app, wares)
       @app = app
+      @wares = wares.map { |name| instantiate(name) }
     end
 
-    def [](name)
-      @wares[name]
+    def each(&block)
+      @wares.each { |w| yield w }
+    end
+
+    def [](index)
+      @wares[index]
     end
 
     private
@@ -69,39 +74,4 @@ module Cannon
       end
     end
   end
-
-  # App code for middleware support
-  module AppMiddleware
-    def middleware
-      @middleware ||= Middlewares.new(self)
-    end
-
-    def handle(request, response)
-      super
-      middleware_runner.run(request, response) if run_middleware?(request)
-    end
-
-    private
-
-    def run_middleware?(request)
-      !request.handled? && !config[:middleware].empty?
-    end
-
-    def middleware_runner
-      @middleware_runner ||= build_middleware_runner
-    end
-
-    def prepared_middleware_stack
-      config[:middleware].dup
-    end
-
-    def build_middleware_runner(middleware = prepared_middleware_stack, callback: nil)
-      return callback if middleware.empty?
-
-      middleware_runner = MiddlewareRunner.new(middleware.pop, callback: callback, app: self)
-      build_middleware_runner(middleware, callback: middleware_runner)
-    end
-  end
 end
-
-Cannon::App.prepend Cannon::AppMiddleware

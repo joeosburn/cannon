@@ -16,6 +16,10 @@ module Cannon
       $LOAD_PATH << root
     end
 
+    def middleware
+      @middleware ||= Middlewares.new(self, config[:middleware])
+    end
+
     def config
       @config ||= Config.new
     end
@@ -48,6 +52,8 @@ module Cannon
           subapp.handle(request, response)
         end
       end
+
+      MiddlewareRunner.new(middleware, request, response).run
     end
 
     private

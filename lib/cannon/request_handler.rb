@@ -8,7 +8,7 @@ module Cannon
     def process_http_request
       LSpace.with(request: request, response: response, app: app) do
         begin
-          handle_request
+          app.handle(request, response)
         rescue StandardError => error
           app.handle_error(error, request, response)
         end
@@ -35,11 +35,6 @@ module Cannon
 
     def response
       @response ||= Response.new(RecordedDelegatedResponse.new(self))
-    end
-
-    def handle_request
-      app.handle(request, response)
-      response.not_found unless request.handled?
     end
   end
 end
