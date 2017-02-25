@@ -18,7 +18,7 @@ module Cannon
     end
 
     def to_s
-      "Route: #{path}"
+      "Route: #{@method} #{@path}"
     end
 
     def needs_params?

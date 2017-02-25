@@ -5,7 +5,7 @@ module Cannon
   class App
     extend Forwardable
 
-    attr_reader :routes, :subapps, :runtime
+    attr_reader :subapps, :runtime
 
     delegate root: :runtime
     delegate logger: :runtime

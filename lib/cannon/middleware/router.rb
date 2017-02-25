@@ -12,31 +12,15 @@ module Cannon
         handle(request, response, next_proc)
       end
 
-      def route(route, actions)
-        routes[route] = RouteAction.route_actions(@app, actions)
-      end
-
-      def caching_route(route, actions)
-        routes[route] = RouteAction.caching_route_actions(@app, actions)
-      end
-
-      def redirect(route, location)
-        routes[route] = RedirectRouteAction.new(location)
-      end
-
       private
 
-      def routes
-        @routes ||= Routes.new
-      end
-
       def handle(request, response, next_proc)
-        route = routes.route_for_request(request)
+        route = @app.routes.route_for_request(request)
         return unless route
 
         request.params.merge!(route.path_params(request.path)) if route.needs_params?
 
-        routes[route].handle(request, response, next_proc)
+        @app.routes[route].handle(request, response, next_proc)
       end
     end
 
@@ -46,8 +30,8 @@ module Cannon
         @routes = {}
       end
 
-      def []=(route, route_action)
-        @routes[route] = route_action
+      def []=(route, actions)
+        @routes[route] = actions
       end
 
       def [](route)
@@ -68,17 +52,17 @@ module Cannon
         actions = [block, options[:action], options[:actions]].flatten.compact
 
         if options[:redirect]
-          router.redirect(route, options[:redirect])
+          routes[route] = RedirectRouteAction.new(location)
         elsif options.fetch(:cache, true)
-          router.caching_route(route, actions)
+          routes[route] = RouteAction.caching_route_actions(self, actions)
         else
-          router.route(route, actions)
+          routes[route] = RouteAction.route_actions(self, actions)
         end
       end
     end
 
-    def router
-      middleware['Router']
+    def routes
+      @routes ||= Cannon::Middleware::Routes.new
     end
   end
 end
