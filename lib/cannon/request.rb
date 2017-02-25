@@ -4,13 +4,13 @@ module Cannon
   # Holds every incoming http request
   class Request
     include RequestId
-    include Benchmarkable
 
     attr_reader :env
     attr_accessor :app
 
     def initialize(env)
       @env = env
+      @env['start-time'] = Time.now
     end
 
     def handled?

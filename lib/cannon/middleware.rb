@@ -5,6 +5,7 @@ require 'cannon/middleware/content_type'
 require 'cannon/middleware/cookies'
 require 'cannon/middleware/session'
 require 'cannon/middleware/flash'
+require 'cannon/middleware/benchmark'
 
 module Cannon
   # Runs the middlewares in deferrable form
@@ -37,6 +38,7 @@ module Cannon
           @callback.run(request, response)
         elsif request.handled?
           response.flush
+          request.emit('finish', request, response)
         end
       end
     end

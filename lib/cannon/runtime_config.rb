@@ -18,7 +18,6 @@ module Cannon
 
       def initialize
         self.cache_app = true
-        self.benchmark_requests = true
         @log_level = :info
         $stdout.sync = true
         self.logger = Logger.new($stdout)
@@ -26,7 +25,7 @@ module Cannon
 
       protected
 
-      attr_accessor :cache_app, :benchmark_requests
+      attr_accessor :cache_app
       attr_reader :logger, :log_level
 
       def logger=(value)
