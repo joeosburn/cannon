@@ -3,7 +3,7 @@ module Cannon
   class Config
     include ElementalReference
 
-    DEFAULT_MIDDLEWARE = %w(RequestLogger Benchmark Files Cookies Session Flash Router ContentType).freeze
+    DEFAULT_MIDDLEWARE = %w(Benchmark RequestLogger Files Cookies Session Flash Router).freeze
 
     def initialize
       self.middleware = DEFAULT_MIDDLEWARE

@@ -27,7 +27,7 @@ RSpec.describe 'Requests', :cannon_app do
 
   it 'sets the Content-Type' do
     get '/basic'
-    expect(response['Content-Type']).to eq('text/plain; charset=us-ascii')
+    expect(response['Content-Type']).to eq('text/plain')
   end
 
   it 'sets the Content-Length' do

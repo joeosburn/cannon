@@ -79,6 +79,8 @@ module Cannon
     def flush
       return if flushed?
 
+      headers['Content-Type'] = 'text/plain' unless headers['Content-Type']
+
       delegated_response.send_headers
       delegated_response.send_response
       @flushed = true

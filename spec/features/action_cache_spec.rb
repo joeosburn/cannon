@@ -12,7 +12,7 @@ def respond_201(_request, response)
   response.send('201 created', status: :created)
 end
 
-def headers(_request, response)
+def set_headers(_request, response)
   Object.called('headers')
   response.header('A-Website', 'http://www.google.com')
   response.header('B-Header', 'http://www.drudgereport.com')
@@ -53,7 +53,7 @@ RSpec.describe 'Action caching', :cannon_app do
     cannon_app.get('/nocache', action: 'simple', cache: false)
 
     cannon_app.get('/create', action: 'respond_201')
-    cannon_app.get('/headers', action: 'headers')
+    cannon_app.get('/headers', action: 'set_headers')
     cannon_app.get('/cookies', action: 'cookies')
   end
 
