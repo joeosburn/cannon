@@ -9,8 +9,6 @@ module Cannon
       end
 
       def run(request, response, next_proc)
-        return next_proc.call if request.handled?
-
         if request.path =~ /^#{mount_point}/
           request.mount_at(mount_point)
           subapp.handle(request, response, -> { request.unmount; next_proc.call })

@@ -7,14 +7,6 @@ module Cannon
       end
 
       def run(request, response, next_proc)
-        return next_proc.call if request.handled?
-
-        handle(request, response, next_proc)
-      end
-
-      private
-
-      def handle(request, response, next_proc)
         route = @app.routes.route_for_request(request)
         return next_proc.call unless route
 

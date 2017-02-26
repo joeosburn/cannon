@@ -10,12 +10,6 @@ module Cannon
       end
 
       def run(request, response, next_proc)
-        request.handled? ? next_proc.call : handle(request, response, next_proc)
-      end
-
-      private
-
-      def handle(request, response, next_proc)
         app = @app
 
         request.define_singleton_method(:cookies) do

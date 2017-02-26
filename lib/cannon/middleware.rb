@@ -28,11 +28,11 @@ module Cannon
         succeed(request, response)
       end
 
-      if ware = wares[@index += 1]
-        ware.run(request, response, next_proc)
-      elsif request.handled?
+      if request.handled?
         response.flush
         request.emit('finish', request, response)
+      elsif ware = wares[@index += 1]
+        ware.run(request, response, next_proc)
       else
         @finish_proc.call
       end

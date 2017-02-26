@@ -9,12 +9,6 @@ module Cannon
       end
 
       def run(request, response, next_proc)
-        request.handled? ? next_proc.call : handle(request, response, next_proc)
-      end
-
-      private
-
-      def handle(request, response, next_proc)
         if valid_file_request?(request)
           file, content_type = *file_and_content_type("#{base_path}#{request.path}")
           response.header('Content-Type', content_type) if content_type
@@ -24,6 +18,8 @@ module Cannon
 
         next_proc.call
       end
+
+      private
 
       def valid_file_request?(request)
         path_array.include?(request.path)

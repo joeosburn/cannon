@@ -7,16 +7,8 @@ module Cannon
       end
 
       def run(request, response, next_proc)
-        request.handled? ? next_proc.call : handle(request, response, next_proc)
-      end
-
-      private
-
-      attr_reader :app
-
-      def handle(request, _response, next_proc)
         app = @app
-        
+
         request.define_singleton_method(:flash) do
           @flash ||= Cannon::Flash.new(app.runtime.config[:session][:cookie_name], cookie_jar: request.signed_cookies)
         end

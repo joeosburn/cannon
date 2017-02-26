@@ -9,13 +9,6 @@ module Cannon
       end
 
       def run(request, response, next_proc)
-        return next_proc.call if request.handled?
-        handle(request, response, next_proc)
-      end
-
-      private
-
-      def handle(request, _response, next_proc)
         app = @app
 
         request.define_singleton_method(:session) do
