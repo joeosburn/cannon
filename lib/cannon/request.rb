@@ -21,9 +21,11 @@ module Cannon
       @handled = true
     end
 
-    def at_mount_point(mount_point)
+    def mount_at(mount_point)
       mount_point_paths << path.gsub(/^#{mount_point}/, '')
-      yield if mount_point_paths[-1] != mount_point_paths[-2]
+    end
+
+    def unmount
       mount_point_paths.pop
     end
 

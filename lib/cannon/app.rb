@@ -24,17 +24,15 @@ module Cannon
       @config ||= Config.new
     end
 
-    def mount(app, at:)
-      subapps[at] = app
-      app.mount_on(self)
+    def mount(subapp, at:)
+      ware = middleware.unshift('Subapp').first
+      ware.subapp = subapp
+      ware.mount_point = at
+      subapp.mount_on(self)
     end
 
     def mount_on(app)
       @runtime = app.runtime
-    end
-
-    def subapps
-      @subapps ||= {}
     end
 
     def handle_error(error, request, response)
@@ -43,17 +41,13 @@ module Cannon
       send_response_error(response, error)
     end
 
-    def handle(request, response)
+    def handle(request, response, finish_proc = nil)
       request.app = self
       response.app = self
 
-      subapps.each do |mount_point, subapp|
-        request.at_mount_point(mount_point) do
-          subapp.handle(request, response)
-        end
-      end
+      finish_proc ||= -> { response.not_found }
 
-      MiddlewareRunner.new(middleware, request, response).run
+      MiddlewareRunner.new(middleware, request, response, finish_proc).run
     end
 
     private

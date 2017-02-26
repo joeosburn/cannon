@@ -6,16 +6,18 @@ require 'cannon/middleware/cookies'
 require 'cannon/middleware/session'
 require 'cannon/middleware/flash'
 require 'cannon/middleware/benchmark'
+require 'cannon/middleware/subapp'
 
 module Cannon
   # Runs the middlewares in deferrable form
   class MiddlewareRunner
     include EventMachine::Deferrable
 
-    def initialize(wares, request, response)
+    def initialize(wares, request, response, finish_proc)
       @wares = wares
       @request = request
       @response = response
+      @finish_proc = finish_proc
       @index = -1
     end
 
@@ -33,7 +35,7 @@ module Cannon
         response.flush
         request.emit('finish', request, response)
       else
-        response.not_found
+        @finish_proc.call
       end
     end
 
@@ -58,6 +60,18 @@ module Cannon
 
     def [](index)
       @wares[index]
+    end
+
+    def unshift(ware)
+      @wares.unshift(instantiate(ware))
+    end
+
+    def push(ware)
+      @wares.push(instantiate(ware))
+    end
+
+    def size
+      @wares.size
     end
 
     private
