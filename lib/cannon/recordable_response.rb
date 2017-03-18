@@ -1,11 +1,11 @@
 module Cannon
-  # RecordedDelegatedResponse is delegated response than can record all of its method calls and
+  # RecordableResponse is delegated response than can record all of its method calls and
   # provide them as a recording to be played back later.
-  class RecordedDelegatedResponse
+  class RecordableResponse
     attr_reader :headers
 
-    def initialize(http_server)
-      @delegated_response = EventMachine::DelegatedHttpResponse.new(http_server)
+    def initialize(response)
+      @response = response
       @recording = false
       @headers = {}
       @cookies = {}
@@ -39,17 +39,18 @@ module Cannon
       header('Set-Cookie', @cookies.collect { |_key, cookie_value| cookie_value })
     end
 
-    def send_headers
-      @delegated_response.headers = headers
+    def flush
+      @response.headers = headers
+      @response.flush
     end
 
     def method_missing(sym, *args, &block)
       method_stack << [sym, args, block] if recording?
-      @delegated_response.send(sym, *args, &block)
+      @response.send(sym, *args, &block)
     end
 
     def respond_to_missing?(method_name, _include_private = false)
-      @delegated_response.respond_to?(method_name)
+      @response.respond_to?(method_name)
     end
 
     private

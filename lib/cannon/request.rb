@@ -1,16 +1,12 @@
 require 'cgi'
 
 module Cannon
-  # Holds every incoming http request
-  class Request
+  # Extends Chase::Request
+  module Request
     include RequestId
 
-    attr_reader :env
-    attr_accessor :app
-
-    def initialize(env)
-      @env = env
-      @env['start-time'] = Time.now
+    def self.included(mod)
+      mod.send(:attr_accessor, :app)
     end
 
     def handled?
@@ -33,24 +29,20 @@ module Cannon
       @params ||= map_params
     end
 
-    def headers
-      @headers ||= map_headers
-    end
-
     def path
       mount_point_paths.last || full_path
     end
 
     def full_path
-      env['http_path_info']
+      env['PATH_INFO']
     end
 
     def protocol
-      env['http_protocol']
+      env['PROTOCOL']
     end
 
     def method
-      env['http_request_method']
+      env['REQUEST_METHOD']
     end
 
     def to_s
@@ -63,10 +55,6 @@ module Cannon
       @mount_point_paths ||= [full_path]
     end
 
-    def map_headers
-      Hash[env['http_headers'].split("\x00").map { |header| header.split(': ', 2) }]
-    end
-
     def map_params
       case method.downcase
       when 'get'
@@ -77,11 +65,13 @@ module Cannon
     end
 
     def mapped_query_params
-      CGI.parse(env['http_query_string']).map { |(key, value)| [key.to_sym, value.last] }
+      CGI.parse(env['QUERY_STRING']).map { |(key, value)| [key.to_sym, value.last] }
     end
 
     def mapped_post_params
-      CGI.parse(env['http_post_content']).map { |(key, value)| [key.to_sym, value.first] }
+      CGI.parse(env['POST_CONTENT']).map { |(key, value)| [key.to_sym, value.first] }
     end
   end
 end
+
+Chase::Request.include Cannon::Request

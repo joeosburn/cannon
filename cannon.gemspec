@@ -17,8 +17,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.test_files = Dir['spec/**/*']
 
-  spec.add_dependency 'eventmachine', '~> 1.2.0'
-  spec.add_dependency 'eventmachine_httpserver'
+  spec.add_dependency 'chase', '0.0.2'
   spec.add_dependency 'mime-types', '~> 3.1'
   spec.add_dependency 'mustache', '~> 1.0.0'
   spec.add_dependency 'pry', '~> 0.10.0'

@@ -71,13 +71,13 @@ RSpec.describe 'Action types', :cannon_app do
   describe 'simple method' do
     it 'handles single actions' do
       get '/hi'
-      expect(response.code).to be(200)
+      expect(response.code).to eq(200)
       expect(response.body).to eq('hi')
     end
 
     it 'handles an actions chain' do
       get '/how'
-      expect(response.code).to be(200)
+      expect(response.code).to eq(200)
       expect(response.body).to eq('hi how are you?')
     end
 
@@ -90,7 +90,7 @@ RSpec.describe 'Action types', :cannon_app do
   describe 'inline' do
     it 'handles single actions' do
       get '/inline'
-      expect(response.code).to be(200)
+      expect(response.code).to eq(200)
       expect(response.body).to eq('inline action')
     end
   end

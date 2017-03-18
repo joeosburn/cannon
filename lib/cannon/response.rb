@@ -60,13 +60,11 @@ module Cannon
 
     def initialize(delegated_response)
       @delegated_response = delegated_response
-      @flushed = false
-
       self.status = :ok
     end
 
     def flushed?
-      @flushed
+      delegated_response.flushed?
     end
 
     def send(content, status: self.status)
@@ -77,13 +75,10 @@ module Cannon
     end
 
     def flush
-      return if flushed?
-
+      return if delegated_response.flushed?
+      
       headers['Content-Type'] = 'text/plain' unless headers['Content-Type']
-
-      delegated_response.send_headers
-      delegated_response.send_response
-      @flushed = true
+      delegated_response.flush
     end
 
     def location_header(location)

@@ -6,23 +6,12 @@ RSpec.describe Cannon::Response do
 
   describe '#flush' do
     before do
-      allow(delegated_response).to receive(:send_headers)
-      allow(delegated_response).to receive(:send_response)
+      allow(delegated_response).to receive(:flush)
+      allow(delegated_response).to receive(:flushed?) { false }
     end
 
-    it 'sets flushed to true' do
-      expect(response).to_not be_flushed
-      response.flush
-      expect(response).to be_flushed
-    end
-
-    it 'sends delegated_response headers' do
-      expect(delegated_response).to receive(:send_headers)
-      response.flush
-    end
-
-    it 'sends delegated_response response' do
-      expect(delegated_response).to receive(:send_response)
+    it 'flushes the delegated response' do
+      expect(delegated_response).to receive(:flush)
       response.flush
     end
 
